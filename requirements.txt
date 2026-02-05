@@ -1,11 +1,17 @@
-# Backend
+# API
 fastapi
 uvicorn
 pydantic
+python-multipart
+
+# ML
 transformers
 torch
 Pillow
 ultralytics
 
+# Parquet write
+pandas
+pyarrow
 
 # Frontend
