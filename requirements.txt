@@ -1,0 +1,11 @@
+# Backend
+fastapi
+uvicorn
+pydantic
+transformers
+torch
+Pillow
+ultralytics
+
+
+# Frontend
