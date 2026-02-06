@@ -1,5 +1,6 @@
 from fastapi import HTTPException
-from backend.src.database.db_utils import upload_video_database, update_video_parquet_table, upload_product_database, update_product_parquet_table
+from backend.src.database.db_utils import upload_video_database, update_video_parquet_table, upload_product_database, update_product_parquet_table, \
+    download_video, download_video_metadata, download_videos_genre, download_product, download_product_metadata, download_products_genre
 from backend.src.detection_classification.detect_classify import classify_video_genre
 
 def upload_video_service(
@@ -24,6 +25,7 @@ def upload_video_service(
     try:
         classify_payload = classify_video_genre(genre_clf_model, video_path)
         video_metadata["genre"] = classify_payload
+        
         update_video_parquet_table(video_metadata)
         status = "completed"
     except Exception as e:
@@ -53,3 +55,21 @@ def upload_product_service(
         raise HTTPException(status_code=500, detail=f"failed_upload: {e}")
 
     return {**product_metadata, "status": status}
+
+def get_vid_by_id_service(video_id):
+    return download_video(video_id)
+
+def get_vid_metadata_by_id_service(video_id):
+    return download_video_metadata(video_id)
+
+def get_vids_by_genre_service(genre):
+    return download_videos_genre(genre)
+
+def get_product_by_id_service(product_id):
+    return download_product(product_id)
+
+def get_product_metadata_by_id_service(product_id):
+    return download_product_metadata(product_id)
+
+def get_products_by_category_service(caregory):
+    return download_products_genre(caregory)

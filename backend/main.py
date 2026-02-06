@@ -8,7 +8,9 @@ from ultralytics import YOLO
 from PIL import Image
 import uuid
 
-from backend.src.backend_base_services import upload_video_service, upload_product_service
+from backend.src.backend_base_services import upload_video_service, upload_product_service, \
+    get_vid_by_id_service, get_vid_metadata_by_id_service, get_vids_by_genre_service, \
+    get_product_by_id_service, get_product_metadata_by_id_service, get_products_by_category_service
 
 app = FastAPI()
 
@@ -99,22 +101,50 @@ async def upload_product(
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-
+@app.get("/videos/{video_id}")
 def get_video_by_id(video_id: str):
-    pass
+    try:
+        return_payload = get_vid_by_id_service(video_id)
+        return return_payload
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Analysis generation failed: {str(e)}")
 
-def get_video_genre_by_id(video_id: str):
-    pass
+@app.get("/videos/metadata/{video_id}") ##3
+def get_video_metadata_by_id(video_id: str):
+    try:
+        return_payload = get_vid_metadata_by_id_service(video_id)
+        return return_payload
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Analysis generation failed: {str(e)}")
 
-def get_videos_by_genre(genre: str):
-    pass
+@app.get("/videos/genres/{genre}")
+def get_videos_by_genre(genre: ProductCategory):
+    try:
+        return_payload = get_vids_by_genre_service(genre)
+        return return_payload
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Analysis generation failed: {str(e)}")
 
-
+@app.get("/products/{product_id}")
 def get_product_by_id(product_id: str):
-    pass
+    try:
+        return_payload = get_product_by_id_service(product_id)
+        return return_payload
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Analysis generation failed: {str(e)}")
 
-def get_product_category_by_id(product_id: str):
-    pass
+@app.get("/products/metadata/{product_id}")
+def get_product_metadata_by_id(product_id: str): ###
+    try:
+        return_payload = get_product_metadata_by_id_service(product_id)
+        return return_payload
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Analysis generation failed: {str(e)}")
 
-def get_products_by_category(category: str):
-    pass
+@app.get("/products/categories/{category}")
+def get_products_by_category(category: ProductCategory):
+    try:
+        return_payload = get_products_by_category_service(category)
+        return return_payload
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Analysis generation failed: {str(e)}")
