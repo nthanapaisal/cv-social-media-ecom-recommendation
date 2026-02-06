@@ -118,4 +118,3 @@ def get_product_category_by_id(product_id: str):
 
 def get_products_by_category(category: str):
     pass
-

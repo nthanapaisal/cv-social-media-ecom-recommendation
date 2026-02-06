@@ -7,7 +7,3 @@ def classify_video_genre(genre_clf, video_path):
         raise ValueError("video_path is required")
     preds = genre_clf(video_path, top_k=5)
     return preds
-
-
-
-

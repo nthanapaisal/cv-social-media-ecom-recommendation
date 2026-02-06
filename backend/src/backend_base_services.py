@@ -53,6 +53,3 @@ def upload_product_service(
         raise HTTPException(status_code=500, detail=f"failed_upload: {e}")
 
     return {**product_metadata, "status": status}
-
-
-
