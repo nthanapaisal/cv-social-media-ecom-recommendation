@@ -1,0 +1,1602 @@
+{
+  "abseiling": [
+    "11",
+    "outdoor"
+  ],
+  "air drumming": [
+    "08",
+    "hobby"
+  ],
+  "answering questions": [
+    "13",
+    "other"
+  ],
+  "applauding": [
+    "13",
+    "other"
+  ],
+  "applying cream": [
+    "02",
+    "beauty"
+  ],
+  "archery": [
+    "11",
+    "outdoor"
+  ],
+  "arm wrestling": [
+    "05",
+    "fitness"
+  ],
+  "arranging flowers": [
+    "04",
+    "home"
+  ],
+  "assembling computer": [
+    "03",
+    "electronics"
+  ],
+  "auctioning": [
+    "13",
+    "other"
+  ],
+  "baby waking up": [
+    "07",
+    "baby"
+  ],
+  "baking cookies": [
+    "06",
+    "food"
+  ],
+  "balloon blowing": [
+    "13",
+    "other"
+  ],
+  "bandaging": [
+    "02",
+    "beauty"
+  ],
+  "barbequing": [
+    "06",
+    "food"
+  ],
+  "bartending": [
+    "06",
+    "food"
+  ],
+  "beatboxing": [
+    "08",
+    "hobby"
+  ],
+  "bee keeping": [
+    "11",
+    "outdoor"
+  ],
+  "belly dancing": [
+    "08",
+    "hobby"
+  ],
+  "bench pressing": [
+    "05",
+    "fitness"
+  ],
+  "bending back": [
+    "05",
+    "fitness"
+  ],
+  "bending metal": [
+    "11",
+    "outdoor"
+  ],
+  "biking through snow": [
+    "11",
+    "outdoor"
+  ],
+  "blasting sand": [
+    "11",
+    "outdoor"
+  ],
+  "blowing glass": [
+    "08",
+    "hobby"
+  ],
+  "blowing leaves": [
+    "11",
+    "outdoor"
+  ],
+  "blowing nose": [
+    "02",
+    "beauty"
+  ],
+  "blowing out candles": [
+    "06",
+    "food"
+  ],
+  "bobsledding": [
+    "11",
+    "outdoor"
+  ],
+  "bookbinding": [
+    "08",
+    "hobby"
+  ],
+  "bouncing on trampoline": [
+    "05",
+    "fitness"
+  ],
+  "bowling": [
+    "05",
+    "fitness"
+  ],
+  "braiding hair": [
+    "02",
+    "beauty"
+  ],
+  "breading or breadcrumbing": [
+    "06",
+    "food"
+  ],
+  "breakdancing": [
+    "08",
+    "hobby"
+  ],
+  "brush painting": [
+    "08",
+    "hobby"
+  ],
+  "brushing hair": [
+    "02",
+    "beauty"
+  ],
+  "brushing teeth": [
+    "02",
+    "beauty"
+  ],
+  "building cabinet": [
+    "04",
+    "home"
+  ],
+  "building shed": [
+    "11",
+    "outdoor"
+  ],
+  "bungee jumping": [
+    "11",
+    "outdoor"
+  ],
+  "busking": [
+    "08",
+    "hobby"
+  ],
+  "canoeing or kayaking": [
+    "11",
+    "outdoor"
+  ],
+  "capoeira": [
+    "05",
+    "fitness"
+  ],
+  "carrying baby": [
+    "07",
+    "baby"
+  ],
+  "cartwheeling": [
+    "05",
+    "fitness"
+  ],
+  "carving pumpkin": [
+    "08",
+    "hobby"
+  ],
+  "catching fish": [
+    "11",
+    "outdoor"
+  ],
+  "catching or throwing baseball": [
+    "05",
+    "fitness"
+  ],
+  "catching or throwing frisbee": [
+    "11",
+    "outdoor"
+  ],
+  "catching or throwing softball": [
+    "05",
+    "fitness"
+  ],
+  "celebrating": [
+    "13",
+    "other"
+  ],
+  "changing oil": [
+    "12",
+    "automotives"
+  ],
+  "changing wheel": [
+    "12",
+    "automotives"
+  ],
+  "checking tires": [
+    "12",
+    "automotives"
+  ],
+  "cheerleading": [
+    "05",
+    "fitness"
+  ],
+  "chopping wood": [
+    "11",
+    "outdoor"
+  ],
+  "clapping": [
+    "13",
+    "other"
+  ],
+  "clay pottery making": [
+    "08",
+    "hobby"
+  ],
+  "clean and jerk": [
+    "05",
+    "fitness"
+  ],
+  "cleaning floor": [
+    "04",
+    "home"
+  ],
+  "cleaning gutters": [
+    "04",
+    "home"
+  ],
+  "cleaning pool": [
+    "04",
+    "home"
+  ],
+  "cleaning shoes": [
+    "04",
+    "home"
+  ],
+  "cleaning toilet": [
+    "04",
+    "home"
+  ],
+  "cleaning windows": [
+    "04",
+    "home"
+  ],
+  "climbing a rope": [
+    "05",
+    "fitness"
+  ],
+  "climbing ladder": [
+    "11",
+    "outdoor"
+  ],
+  "climbing tree": [
+    "11",
+    "outdoor"
+  ],
+  "contact juggling": [
+    "08",
+    "hobby"
+  ],
+  "cooking chicken": [
+    "06",
+    "food"
+  ],
+  "cooking egg": [
+    "06",
+    "food"
+  ],
+  "cooking on campfire": [
+    "11",
+    "outdoor"
+  ],
+  "cooking sausages": [
+    "06",
+    "food"
+  ],
+  "counting money": [
+    "13",
+    "other"
+  ],
+  "country line dancing": [
+    "08",
+    "hobby"
+  ],
+  "cracking neck": [
+    "02",
+    "beauty"
+  ],
+  "crawling baby": [
+    "07",
+    "baby"
+  ],
+  "crossing river": [
+    "11",
+    "outdoor"
+  ],
+  "crying": [
+    "13",
+    "other"
+  ],
+  "curling hair": [
+    "02",
+    "beauty"
+  ],
+  "cutting nails": [
+    "02",
+    "beauty"
+  ],
+  "cutting pineapple": [
+    "06",
+    "food"
+  ],
+  "cutting watermelon": [
+    "06",
+    "food"
+  ],
+  "dancing ballet": [
+    "08",
+    "hobby"
+  ],
+  "dancing charleston": [
+    "08",
+    "hobby"
+  ],
+  "dancing gangnam style": [
+    "08",
+    "hobby"
+  ],
+  "dancing macarena": [
+    "08",
+    "hobby"
+  ],
+  "deadlifting": [
+    "05",
+    "fitness"
+  ],
+  "decorating the christmas tree": [
+    "04",
+    "home"
+  ],
+  "digging": [
+    "11",
+    "outdoor"
+  ],
+  "dining": [
+    "06",
+    "food"
+  ],
+  "disc golfing": [
+    "11",
+    "outdoor"
+  ],
+  "diving cliff": [
+    "11",
+    "outdoor"
+  ],
+  "dodgeball": [
+    "05",
+    "fitness"
+  ],
+  "doing aerobics": [
+    "05",
+    "fitness"
+  ],
+  "doing laundry": [
+    "04",
+    "home"
+  ],
+  "doing nails": [
+    "02",
+    "beauty"
+  ],
+  "drawing": [
+    "08",
+    "hobby"
+  ],
+  "dribbling basketball": [
+    "05",
+    "fitness"
+  ],
+  "drinking": [
+    "06",
+    "food"
+  ],
+  "drinking beer": [
+    "06",
+    "food"
+  ],
+  "drinking shots": [
+    "06",
+    "food"
+  ],
+  "driving car": [
+    "12",
+    "automotives"
+  ],
+  "driving tractor": [
+    "12",
+    "automotives"
+  ],
+  "drop kicking": [
+    "05",
+    "fitness"
+  ],
+  "drumming fingers": [
+    "13",
+    "other"
+  ],
+  "dunking basketball": [
+    "05",
+    "fitness"
+  ],
+  "dying hair": [
+    "02",
+    "beauty"
+  ],
+  "eating burger": [
+    "06",
+    "food"
+  ],
+  "eating cake": [
+    "06",
+    "food"
+  ],
+  "eating carrots": [
+    "06",
+    "food"
+  ],
+  "eating chips": [
+    "06",
+    "food"
+  ],
+  "eating doughnuts": [
+    "06",
+    "food"
+  ],
+  "eating hotdog": [
+    "06",
+    "food"
+  ],
+  "eating ice cream": [
+    "06",
+    "food"
+  ],
+  "eating spaghetti": [
+    "06",
+    "food"
+  ],
+  "eating watermelon": [
+    "06",
+    "food"
+  ],
+  "egg hunting": [
+    "08",
+    "hobby"
+  ],
+  "exercising arm": [
+    "05",
+    "fitness"
+  ],
+  "exercising with an exercise ball": [
+    "05",
+    "fitness"
+  ],
+  "extinguishing fire": [
+    "11",
+    "outdoor"
+  ],
+  "faceplanting": [
+    "05",
+    "fitness"
+  ],
+  "feeding birds": [
+    "11",
+    "outdoor"
+  ],
+  "feeding fish": [
+    "11",
+    "outdoor"
+  ],
+  "feeding goats": [
+    "11",
+    "outdoor"
+  ],
+  "filling eyebrows": [
+    "02",
+    "beauty"
+  ],
+  "finger snapping": [
+    "13",
+    "other"
+  ],
+  "fixing hair": [
+    "02",
+    "beauty"
+  ],
+  "flipping pancake": [
+    "06",
+    "food"
+  ],
+  "flying kite": [
+    "11",
+    "outdoor"
+  ],
+  "folding clothes": [
+    "04",
+    "home"
+  ],
+  "folding napkins": [
+    "04",
+    "home"
+  ],
+  "folding paper": [
+    "08",
+    "hobby"
+  ],
+  "front raises": [
+    "05",
+    "fitness"
+  ],
+  "frying vegetables": [
+    "06",
+    "food"
+  ],
+  "garbage collecting": [
+    "13",
+    "other"
+  ],
+  "gargling": [
+    "02",
+    "beauty"
+  ],
+  "getting a haircut": [
+    "02",
+    "beauty"
+  ],
+  "getting a tattoo": [
+    "02",
+    "beauty"
+  ],
+  "giving or receiving award": [
+    "13",
+    "other"
+  ],
+  "golf chipping": [
+    "05",
+    "fitness"
+  ],
+  "golf driving": [
+    "05",
+    "fitness"
+  ],
+  "golf putting": [
+    "05",
+    "fitness"
+  ],
+  "grinding meat": [
+    "06",
+    "food"
+  ],
+  "grooming dog": [
+    "09",
+    "pets"
+  ],
+  "grooming horse": [
+    "09",
+    "pets"
+  ],
+  "gymnastics tumbling": [
+    "05",
+    "fitness"
+  ],
+  "hammer throw": [
+    "05",
+    "fitness"
+  ],
+  "headbanging": [
+    "08",
+    "hobby"
+  ],
+  "headbutting": [
+    "05",
+    "fitness"
+  ],
+  "high jump": [
+    "05",
+    "fitness"
+  ],
+  "high kick": [
+    "05",
+    "fitness"
+  ],
+  "hitting baseball": [
+    "05",
+    "fitness"
+  ],
+  "hockey stop": [
+    "05",
+    "fitness"
+  ],
+  "holding snake": [
+    "09",
+    "pets"
+  ],
+  "hopscotch": [
+    "05",
+    "fitness"
+  ],
+  "hoverboarding": [
+    "11",
+    "outdoor"
+  ],
+  "hugging": [
+    "13",
+    "other"
+  ],
+  "hula hooping": [
+    "05",
+    "fitness"
+  ],
+  "hurdling": [
+    "05",
+    "fitness"
+  ],
+  "hurling (sport)": [
+    "05",
+    "fitness"
+  ],
+  "ice climbing": [
+    "11",
+    "outdoor"
+  ],
+  "ice fishing": [
+    "11",
+    "outdoor"
+  ],
+  "ice skating": [
+    "05",
+    "fitness"
+  ],
+  "ironing": [
+    "04",
+    "home"
+  ],
+  "javelin throw": [
+    "05",
+    "fitness"
+  ],
+  "jetskiing": [
+    "11",
+    "outdoor"
+  ],
+  "jogging": [
+    "05",
+    "fitness"
+  ],
+  "juggling balls": [
+    "08",
+    "hobby"
+  ],
+  "juggling fire": [
+    "08",
+    "hobby"
+  ],
+  "juggling soccer ball": [
+    "05",
+    "fitness"
+  ],
+  "jumping into pool": [
+    "05",
+    "fitness"
+  ],
+  "jumpstyle dancing": [
+    "08",
+    "hobby"
+  ],
+  "kicking field goal": [
+    "05",
+    "fitness"
+  ],
+  "kicking soccer ball": [
+    "05",
+    "fitness"
+  ],
+  "kissing": [
+    "13",
+    "other"
+  ],
+  "kitesurfing": [
+    "11",
+    "outdoor"
+  ],
+  "knitting": [
+    "08",
+    "hobby"
+  ],
+  "krumping": [
+    "08",
+    "hobby"
+  ],
+  "laughing": [
+    "13",
+    "other"
+  ],
+  "laying bricks": [
+    "11",
+    "outdoor"
+  ],
+  "long jump": [
+    "05",
+    "fitness"
+  ],
+  "lunge": [
+    "05",
+    "fitness"
+  ],
+  "making a cake": [
+    "06",
+    "food"
+  ],
+  "making a sandwich": [
+    "06",
+    "food"
+  ],
+  "making bed": [
+    "04",
+    "home"
+  ],
+  "making jewelry": [
+    "08",
+    "hobby"
+  ],
+  "making pizza": [
+    "06",
+    "food"
+  ],
+  "making snowman": [
+    "11",
+    "outdoor"
+  ],
+  "making sushi": [
+    "06",
+    "food"
+  ],
+  "making tea": [
+    "06",
+    "food"
+  ],
+  "marching": [
+    "13",
+    "other"
+  ],
+  "massaging back": [
+    "02",
+    "beauty"
+  ],
+  "massaging feet": [
+    "02",
+    "beauty"
+  ],
+  "massaging legs": [
+    "02",
+    "beauty"
+  ],
+  "massaging person's head": [
+    "02",
+    "beauty"
+  ],
+  "milking cow": [
+    "11",
+    "outdoor"
+  ],
+  "mopping floor": [
+    "04",
+    "home"
+  ],
+  "motorcycling": [
+    "12",
+    "automotives"
+  ],
+  "moving furniture": [
+    "04",
+    "home"
+  ],
+  "mowing lawn": [
+    "11",
+    "outdoor"
+  ],
+  "news anchoring": [
+    "13",
+    "other"
+  ],
+  "opening bottle": [
+    "06",
+    "food"
+  ],
+  "opening present": [
+    "13",
+    "other"
+  ],
+  "paragliding": [
+    "11",
+    "outdoor"
+  ],
+  "parasailing": [
+    "11",
+    "outdoor"
+  ],
+  "parkour": [
+    "05",
+    "fitness"
+  ],
+  "passing American football (in game)": [
+    "05",
+    "fitness"
+  ],
+  "passing American football (not in game)": [
+    "05",
+    "fitness"
+  ],
+  "peeling apples": [
+    "06",
+    "food"
+  ],
+  "peeling potatoes": [
+    "06",
+    "food"
+  ],
+  "petting animal (not cat)": [
+    "09",
+    "pets"
+  ],
+  "petting cat": [
+    "09",
+    "pets"
+  ],
+  "picking fruit": [
+    "11",
+    "outdoor"
+  ],
+  "planting trees": [
+    "11",
+    "outdoor"
+  ],
+  "plastering": [
+    "04",
+    "home"
+  ],
+  "playing accordion": [
+    "08",
+    "hobby"
+  ],
+  "playing badminton": [
+    "05",
+    "fitness"
+  ],
+  "playing bagpipes": [
+    "08",
+    "hobby"
+  ],
+  "playing basketball": [
+    "05",
+    "fitness"
+  ],
+  "playing bass guitar": [
+    "08",
+    "hobby"
+  ],
+  "playing cards": [
+    "08",
+    "hobby"
+  ],
+  "playing cello": [
+    "08",
+    "hobby"
+  ],
+  "playing chess": [
+    "08",
+    "hobby"
+  ],
+  "playing clarinet": [
+    "08",
+    "hobby"
+  ],
+  "playing controller": [
+    "10",
+    "gaming"
+  ],
+  "playing cricket": [
+    "05",
+    "fitness"
+  ],
+  "playing cymbals": [
+    "08",
+    "hobby"
+  ],
+  "playing didgeridoo": [
+    "08",
+    "hobby"
+  ],
+  "playing drums": [
+    "08",
+    "hobby"
+  ],
+  "playing flute": [
+    "08",
+    "hobby"
+  ],
+  "playing guitar": [
+    "08",
+    "hobby"
+  ],
+  "playing harmonica": [
+    "08",
+    "hobby"
+  ],
+  "playing harp": [
+    "08",
+    "hobby"
+  ],
+  "playing ice hockey": [
+    "05",
+    "fitness"
+  ],
+  "playing keyboard": [
+    "08",
+    "hobby"
+  ],
+  "playing kickball": [
+    "05",
+    "fitness"
+  ],
+  "playing monopoly": [
+    "08",
+    "hobby"
+  ],
+  "playing organ": [
+    "08",
+    "hobby"
+  ],
+  "playing paintball": [
+    "11",
+    "outdoor"
+  ],
+  "playing piano": [
+    "08",
+    "hobby"
+  ],
+  "playing poker": [
+    "10",
+    "gaming"
+  ],
+  "playing recorder": [
+    "08",
+    "hobby"
+  ],
+  "playing saxophone": [
+    "08",
+    "hobby"
+  ],
+  "playing squash or racquetball": [
+    "05",
+    "fitness"
+  ],
+  "playing tennis": [
+    "05",
+    "fitness"
+  ],
+  "playing trombone": [
+    "08",
+    "hobby"
+  ],
+  "playing trumpet": [
+    "08",
+    "hobby"
+  ],
+  "playing ukulele": [
+    "08",
+    "hobby"
+  ],
+  "playing violin": [
+    "08",
+    "hobby"
+  ],
+  "playing volleyball": [
+    "05",
+    "fitness"
+  ],
+  "playing xylophone": [
+    "08",
+    "hobby"
+  ],
+  "pole vault": [
+    "05",
+    "fitness"
+  ],
+  "presenting weather forecast": [
+    "13",
+    "other"
+  ],
+  "pull ups": [
+    "05",
+    "fitness"
+  ],
+  "pumping fist": [
+    "13",
+    "other"
+  ],
+  "pumping gas": [
+    "12",
+    "automotives"
+  ],
+  "punching bag": [
+    "05",
+    "fitness"
+  ],
+  "punching person (boxing)": [
+    "05",
+    "fitness"
+  ],
+  "push up": [
+    "05",
+    "fitness"
+  ],
+  "pushing car": [
+    "12",
+    "automotives"
+  ],
+  "pushing cart": [
+    "13",
+    "other"
+  ],
+  "pushing wheelchair": [
+    "13",
+    "other"
+  ],
+  "reading book": [
+    "08",
+    "hobby"
+  ],
+  "reading newspaper": [
+    "08",
+    "hobby"
+  ],
+  "recording music": [
+    "08",
+    "hobby"
+  ],
+  "riding a bike": [
+    "05",
+    "fitness"
+  ],
+  "riding camel": [
+    "11",
+    "outdoor"
+  ],
+  "riding elephant": [
+    "11",
+    "outdoor"
+  ],
+  "riding mechanical bull": [
+    "11",
+    "outdoor"
+  ],
+  "riding mountain bike": [
+    "11",
+    "outdoor"
+  ],
+  "riding mule": [
+    "11",
+    "outdoor"
+  ],
+  "riding or walking with horse": [
+    "11",
+    "outdoor"
+  ],
+  "riding scooter": [
+    "11",
+    "outdoor"
+  ],
+  "riding unicycle": [
+    "11",
+    "outdoor"
+  ],
+  "ripping paper": [
+    "13",
+    "other"
+  ],
+  "robot dancing": [
+    "08",
+    "hobby"
+  ],
+  "rock climbing": [
+    "11",
+    "outdoor"
+  ],
+  "rock scissors paper": [
+    "13",
+    "other"
+  ],
+  "roller skating": [
+    "05",
+    "fitness"
+  ],
+  "running on treadmill": [
+    "05",
+    "fitness"
+  ],
+  "sailing": [
+    "11",
+    "outdoor"
+  ],
+  "salsa dancing": [
+    "08",
+    "hobby"
+  ],
+  "sanding floor": [
+    "04",
+    "home"
+  ],
+  "scrambling eggs": [
+    "06",
+    "food"
+  ],
+  "scuba diving": [
+    "11",
+    "outdoor"
+  ],
+  "setting table": [
+    "04",
+    "home"
+  ],
+  "shaking hands": [
+    "13",
+    "other"
+  ],
+  "shaking head": [
+    "13",
+    "other"
+  ],
+  "sharpening knives": [
+    "04",
+    "home"
+  ],
+  "sharpening pencil": [
+    "08",
+    "hobby"
+  ],
+  "shaving head": [
+    "02",
+    "beauty"
+  ],
+  "shaving legs": [
+    "02",
+    "beauty"
+  ],
+  "shearing sheep": [
+    "11",
+    "outdoor"
+  ],
+  "shining shoes": [
+    "04",
+    "home"
+  ],
+  "shooting basketball": [
+    "05",
+    "fitness"
+  ],
+  "shooting goal (soccer)": [
+    "05",
+    "fitness"
+  ],
+  "shot put": [
+    "05",
+    "fitness"
+  ],
+  "shoveling snow": [
+    "11",
+    "outdoor"
+  ],
+  "shredding paper": [
+    "13",
+    "other"
+  ],
+  "shuffling cards": [
+    "08",
+    "hobby"
+  ],
+  "side kick": [
+    "05",
+    "fitness"
+  ],
+  "sign language interpreting": [
+    "13",
+    "other"
+  ],
+  "singing": [
+    "08",
+    "hobby"
+  ],
+  "situp": [
+    "05",
+    "fitness"
+  ],
+  "skateboarding": [
+    "05",
+    "fitness"
+  ],
+  "ski jumping": [
+    "11",
+    "outdoor"
+  ],
+  "skiing (not slalom or crosscountry)": [
+    "11",
+    "outdoor"
+  ],
+  "skiing crosscountry": [
+    "11",
+    "outdoor"
+  ],
+  "skiing slalom": [
+    "11",
+    "outdoor"
+  ],
+  "skipping rope": [
+    "05",
+    "fitness"
+  ],
+  "skydiving": [
+    "11",
+    "outdoor"
+  ],
+  "slacklining": [
+    "11",
+    "outdoor"
+  ],
+  "slapping": [
+    "05",
+    "fitness"
+  ],
+  "sled dog racing": [
+    "11",
+    "outdoor"
+  ],
+  "smoking": [
+    "13",
+    "other"
+  ],
+  "smoking hookah": [
+    "13",
+    "other"
+  ],
+  "snatch weight lifting": [
+    "05",
+    "fitness"
+  ],
+  "sneezing": [
+    "02",
+    "beauty"
+  ],
+  "sniffing": [
+    "02",
+    "beauty"
+  ],
+  "snorkeling": [
+    "11",
+    "outdoor"
+  ],
+  "snowboarding": [
+    "11",
+    "outdoor"
+  ],
+  "snowkiting": [
+    "11",
+    "outdoor"
+  ],
+  "snowmobiling": [
+    "11",
+    "outdoor"
+  ],
+  "somersaulting": [
+    "05",
+    "fitness"
+  ],
+  "spinning poi": [
+    "08",
+    "hobby"
+  ],
+  "spray painting": [
+    "08",
+    "hobby"
+  ],
+  "spraying": [
+    "13",
+    "other"
+  ],
+  "springboard diving": [
+    "05",
+    "fitness"
+  ],
+  "squat": [
+    "05",
+    "fitness"
+  ],
+  "sticking tongue out": [
+    "13",
+    "other"
+  ],
+  "stomping grapes": [
+    "06",
+    "food"
+  ],
+  "stretching arm": [
+    "05",
+    "fitness"
+  ],
+  "stretching leg": [
+    "05",
+    "fitness"
+  ],
+  "strumming guitar": [
+    "08",
+    "hobby"
+  ],
+  "surfing crowd": [
+    "13",
+    "other"
+  ],
+  "surfing water": [
+    "11",
+    "outdoor"
+  ],
+  "sweeping floor": [
+    "04",
+    "home"
+  ],
+  "swimming backstroke": [
+    "05",
+    "fitness"
+  ],
+  "swimming breast stroke": [
+    "05",
+    "fitness"
+  ],
+  "swimming butterfly stroke": [
+    "05",
+    "fitness"
+  ],
+  "swing dancing": [
+    "08",
+    "hobby"
+  ],
+  "swinging legs": [
+    "05",
+    "fitness"
+  ],
+  "swinging on something": [
+    "11",
+    "outdoor"
+  ],
+  "sword fighting": [
+    "05",
+    "fitness"
+  ],
+  "tai chi": [
+    "05",
+    "fitness"
+  ],
+  "taking a shower": [
+    "02",
+    "beauty"
+  ],
+  "tango dancing": [
+    "08",
+    "hobby"
+  ],
+  "tap dancing": [
+    "08",
+    "hobby"
+  ],
+  "tapping guitar": [
+    "08",
+    "hobby"
+  ],
+  "tapping pen": [
+    "13",
+    "other"
+  ],
+  "tasting beer": [
+    "06",
+    "food"
+  ],
+  "tasting food": [
+    "06",
+    "food"
+  ],
+  "testifying": [
+    "13",
+    "other"
+  ],
+  "texting": [
+    "03",
+    "electronics"
+  ],
+  "throwing axe": [
+    "11",
+    "outdoor"
+  ],
+  "throwing ball": [
+    "05",
+    "fitness"
+  ],
+  "throwing discus": [
+    "05",
+    "fitness"
+  ],
+  "tickling": [
+    "13",
+    "other"
+  ],
+  "tobogganing": [
+    "11",
+    "outdoor"
+  ],
+  "tossing coin": [
+    "13",
+    "other"
+  ],
+  "tossing salad": [
+    "06",
+    "food"
+  ],
+  "training dog": [
+    "09",
+    "pets"
+  ],
+  "trapezing": [
+    "11",
+    "outdoor"
+  ],
+  "trimming or shaving beard": [
+    "02",
+    "beauty"
+  ],
+  "trimming trees": [
+    "11",
+    "outdoor"
+  ],
+  "triple jump": [
+    "05",
+    "fitness"
+  ],
+  "tying bow tie": [
+    "01",
+    "fashion"
+  ],
+  "tying knot (not on a tie)": [
+    "08",
+    "hobby"
+  ],
+  "tying tie": [
+    "01",
+    "fashion"
+  ],
+  "unboxing": [
+    "13",
+    "other"
+  ],
+  "unloading truck": [
+    "13",
+    "other"
+  ],
+  "using computer": [
+    "03",
+    "electronics"
+  ],
+  "using remote controller (not gaming)": [
+    "03",
+    "electronics"
+  ],
+  "using segway": [
+    "11",
+    "outdoor"
+  ],
+  "vault": [
+    "05",
+    "fitness"
+  ],
+  "waiting in line": [
+    "13",
+    "other"
+  ],
+  "walking the dog": [
+    "09",
+    "pets"
+  ],
+  "washing dishes": [
+    "04",
+    "home"
+  ],
+  "washing feet": [
+    "02",
+    "beauty"
+  ],
+  "washing hair": [
+    "02",
+    "beauty"
+  ],
+  "washing hands": [
+    "02",
+    "beauty"
+  ],
+  "water skiing": [
+    "11",
+    "outdoor"
+  ],
+  "water sliding": [
+    "11",
+    "outdoor"
+  ],
+  "watering plants": [
+    "04",
+    "home"
+  ],
+  "waxing back": [
+    "02",
+    "beauty"
+  ],
+  "waxing chest": [
+    "02",
+    "beauty"
+  ],
+  "waxing eyebrows": [
+    "02",
+    "beauty"
+  ],
+  "waxing legs": [
+    "02",
+    "beauty"
+  ],
+  "weaving basket": [
+    "08",
+    "hobby"
+  ],
+  "welding": [
+    "11",
+    "outdoor"
+  ],
+  "whistling": [
+    "08",
+    "hobby"
+  ],
+  "windsurfing": [
+    "11",
+    "outdoor"
+  ],
+  "wrapping present": [
+    "13",
+    "other"
+  ],
+  "wrestling": [
+    "05",
+    "fitness"
+  ],
+  "writing": [
+    "13",
+    "other"
+  ],
+  "yawning": [
+    "13",
+    "other"
+  ],
+  "yoga": [
+    "05",
+    "fitness"
+  ],
+  "zumba": [
+    "05",
+    "fitness"
+  ]
+}

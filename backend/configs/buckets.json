@@ -1,0 +1,17 @@
+{
+  "buckets": {
+    "fashion": "01",
+    "beauty": "02",
+    "electronics": "03",
+    "home": "04",
+    "fitness": "05",
+    "food": "06",
+    "baby": "07",
+    "hobby": "08",
+    "pets": "09",
+    "gaming": "10",
+    "outdoor": "11",
+    "automotives": "12",
+    "other": "13"
+  }
+}
