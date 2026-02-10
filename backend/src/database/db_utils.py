@@ -1,13 +1,16 @@
 import os
-import shutil
 import pandas as pd
+import shutil
+import numpy as np
+from fastapi.encoders import jsonable_encoder
 
 VIDEO_DIR = "data/videos"
 PRODUCT_DIR = "data/products"
 VIDEO_PARQUET_DIR = "data/video_parquet"
 PRODUCT_PARQUET_DIR = "data/product_parquet"
+USER_INTERACTION_PARQUET_DIR = "data/user_interaction_parquet"
 
-
+########################################## Upload and Update ########################################## 
 def upload_video_database(vid_id, video):
     os.makedirs(VIDEO_DIR, exist_ok=True)
 
@@ -30,44 +33,62 @@ def upload_product_database(product_id, image):
     image.save(product_path, format="JPEG", quality=95, optimize=True)
     return product_path 
 
-def normalize_video_row(payload: dict):
-    vid_id = payload.get("video_id")
-    vid_path = payload.get("video_path")
 
-    if not vid_id:
-        raise ValueError("video_id is required (vid_id cannot be null)")
-    if not vid_path:
-        raise ValueError("video_path is required (vid_path cannot be null)")
-
-    genre_preds = payload.get("genre") or []
-    labels = []
-    if isinstance(genre_preds, list):
-        for p in genre_preds:
-            if isinstance(p, dict) and p.get("label") is not None:
-                labels.append(str(p["label"]))
-
-    return {
-        "video_id": payload.get("video_id"),
-        "video_path": payload.get("video_path"),
-        "caption": payload.get("caption"),
-        "genres": labels if labels else None
+def update_parquet_table(data_dict, item_type):
+    id_key_map = {
+        "video": "video_id",
+        "product": "product_id",
+        "user": "video_id"
     }
 
-def update_video_parquet_table(video_metadata_json):
-    os.makedirs(VIDEO_PARQUET_DIR, exist_ok=True)
+    path_map = {
+        "video": VIDEO_PARQUET_DIR,
+        "product": PRODUCT_PARQUET_DIR,
+        "user": USER_INTERACTION_PARQUET_DIR
+    }
 
-    row = normalize_video_row(video_metadata_json)
-    df = pd.DataFrame([row])
-    out_path = os.path.join(VIDEO_PARQUET_DIR, f"part-{row['video_id']}.parquet")
+    id_key = id_key_map[item_type]
+    path = path_map[item_type]
+    
+    os.makedirs(path, exist_ok=True)
+    df = pd.DataFrame([data_dict])
+    out_path = os.path.join(path, f"part-{data_dict[id_key]}.parquet")
     df.to_parquet(out_path, engine="pyarrow", index=False)
     
     return out_path
 
-def update_product_parquet_table(product_metadata_json):
-    os.makedirs(PRODUCT_PARQUET_DIR, exist_ok=True)
+########################################## Download ########################################## 
+def download_video(video_id: str):
+    for fname in os.listdir(VIDEO_DIR):
+        if fname.startswith(video_id):
+            return os.path.join(VIDEO_DIR, fname)
+    raise FileNotFoundError(f"Video {video_id} not found")
 
-    df = pd.DataFrame([product_metadata_json])
-    out_path = os.path.join(PRODUCT_PARQUET_DIR, f"part-{product_metadata_json['product_id']}.parquet")
-    df.to_parquet(out_path, engine="pyarrow", index=False)
-    
-    return out_path
+def download_video_metadata(video_id: str):
+    df = pd.read_parquet(VIDEO_PARQUET_DIR)
+    row = df[df["video_id"] == video_id]
+    if row.empty:
+        raise FileNotFoundError(f"Product metadata {video_id} not found")
+    result = row.iloc[0].to_dict()
+    for k, v in result.items():
+        if isinstance(v, np.ndarray):
+            result[k] = v.tolist()
+
+    return jsonable_encoder(result)
+
+def download_product(product_id: str):
+    path = os.path.join(PRODUCT_DIR, f"{product_id}.jpg")
+    if not os.path.exists(path):
+        raise FileNotFoundError(f"Product image {product_id} not found")
+    return path
+
+def download_product_metadata(product_id: str):
+    df = pd.read_parquet(PRODUCT_PARQUET_DIR)
+    row = df[df["product_id"] == product_id]
+    print(row)
+    if row.empty:
+        raise FileNotFoundError(f"Product metadata {product_id} not found")
+    return row.iloc[0].to_dict()
+
+def download_random_videos():
+    return pd.read_parquet(VIDEO_PARQUET_DIR)

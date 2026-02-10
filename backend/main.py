@@ -1,14 +1,15 @@
-import os
 import io
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Depends
 from enum import Enum
 from pydantic import BaseModel
 from transformers import pipeline
-from ultralytics import YOLO
 from PIL import Image
 import uuid
 
-from backend.src.backend_base_services import upload_video_service, upload_product_service
+from backend.src.backend_base_services import upload_video_service, upload_product_service, \
+    get_vid_by_id_service, get_vid_metadata_by_id_service, get_vids_by_genre_service, \
+    get_product_by_id_service, get_product_metadata_by_id_service, get_products_by_category_service, \
+    update_user_interaction_service, get_feed_service
 
 app = FastAPI()
 
@@ -60,14 +61,14 @@ def startup():
 def get_genre_classifier():
     return app.state.genre_classifier
 
-@app.post("/videos/upload")
+@app.post("/upload/video/")
 async def upload_video(
     video: UploadFile = File(...),
     request_payload: VideoUploadRequest = Depends(VideoUploadRequest.as_form),
     genre_clf_model= Depends(get_genre_classifier)
 ):  
     vid_id = str(uuid.uuid4())
-    print(f"main.py: /videos/upload id: {vid_id}")
+    print(f"main.py: /upload/video id: {vid_id}")
 
     if not video.filename.lower().endswith((".mp4", ".mov", ".mkv", ".webm", ".avi")):
         raise HTTPException(status_code=400, detail="Unsupported video format")
@@ -78,43 +79,80 @@ async def upload_video(
             video, 
             request_payload
         )
-        print(f"main.py: uploaded video to database, applied classification and object detection: {vid_id}")
+        print(f"main.py: /upload/video/ uploaded video to database, applied classification and object detection: {vid_id}")
         return upload_payload
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.post("/products/upload")
+@app.post("/upload/product/")
 async def upload_product(
     image: UploadFile = File(...),
     request_payload: ProductUploadRequest = Depends(ProductUploadRequest.as_form)
 ):
     prod_id = str(uuid.uuid4())
-    print(f"main.py: /products/upload id: {prod_id}")
+    print(f"main.py: /upload/product/ id: {prod_id}")
     try:
         img_bytes = await image.read()
         img = Image.open(io.BytesIO(img_bytes)).convert("RGB")
         upload_payload = upload_product_service(prod_id, img, request_payload)
-        print(f"main.py: uploaded product to database, applied classification and object detection: {prod_id}")
+        print(f"main.py: /upload/product/ uploaded product to database, applied classification and object detection: {prod_id}")
         return upload_payload
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-
+@app.get("/video/{video_id}")
 def get_video_by_id(video_id: str):
-    pass
+    try:
+        return_payload = get_vid_by_id_service(video_id)
+        return return_payload
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"get_video_by_id failed: {str(e)}")
 
-def get_video_genre_by_id(video_id: str):
-    pass
+@app.get("/video/metadata/{video_id}") ##3
+def get_video_metadata_by_id(video_id: str):
+    try:
+        return_payload = get_vid_metadata_by_id_service(video_id)
+        return return_payload
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"get_video_metadata_by_id failed: {str(e)}")
 
-def get_videos_by_genre(genre: str):
-    pass
-
-
+@app.get("/product/{product_id}")
 def get_product_by_id(product_id: str):
-    pass
+    try:
+        return_payload = get_product_by_id_service(product_id)
+        return return_payload
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"get_product_by_id failed: {str(e)}")
 
-def get_product_category_by_id(product_id: str):
-    pass
+@app.get("/product/metadata/{product_id}")
+def get_product_metadata_by_id(product_id: str):
+    try:
+        return_payload = get_product_metadata_by_id_service(product_id)
+        return return_payload
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"get_product_metadata_by_id failed: {str(e)}")
 
-def get_products_by_category(category: str):
+@app.post("/video/interactions/")
+async def update_video_interactions(
+    video_id: str,
+    watch_time_ms: int
+):
+    try:
+        return_payload = update_user_interaction_service(video_id, watch_time_ms)
+        return return_payload
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"update_video_interactions failed: {str(e)}")
+
+# return 10 video paths randomly selected from DB
+@app.get("/feed/videos")
+def get_feed_videos(vids_num: int = 5):
+    try:
+        return_payload = get_feed_service(vids_num)
+        return return_payload
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"get_feed_videos failed: {str(e)}")
+
+# Recommendation portion; return top 20 products (its metadata) after calling recommendation system and product selections
+@app.get("/shop/products")
+def get_shop_products():
     pass
