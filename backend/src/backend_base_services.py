@@ -1,13 +1,16 @@
 from fastapi import HTTPException
-import pandas as pd
 
 from backend.src.database.db_utils import upload_video_database, upload_product_database, update_parquet_table, \
-    download_video, download_video_metadata, download_product, download_product_metadata, download_random_videos
+    download_video, download_video_metadata, download_product, download_product_metadata, download_all_videos_metadata, download_user_interactions
 from backend.src.detection_classification.detect_classify import load_json, classify_video_genre, get_video_duration_ms_from_path
 
+import logging
+logger = logging.getLogger(__name__)
 
 MAPPED_LABELS = load_json("./backend/configs/mapped_labels_buckets.json")
 BUCKETS = load_json("./backend/configs/buckets.json")
+
+
 
 def upload_video_service(
     genre_clf_model, vid_id, video, request_payload
@@ -65,6 +68,7 @@ def upload_product_service(
         "title": request_payload.title,
         "product_details": request_payload.description,
         "bucket_num": bucket_num,
+        "target_demographic": request_payload.target_demographic,
         "bucket_name": request_payload.category.value
     }
 
@@ -96,16 +100,17 @@ def get_product_metadata_by_id_service(product_id):
 def get_products_by_category_service(category):
     return download_products_genre(category)
 
-def update_user_interaction_service(video_id, watch_time_ms):
+def update_user_interaction_service(video_id: int, watch_time_ms:int, user_biography: dict):
     user_interaction = {
         "video_id": video_id,
-        "watch_time_ms": watch_time_ms
+        "watch_time_ms": watch_time_ms,
+        "user_biography": user_biography,
     }
     out_path = update_parquet_table(user_interaction , "user")
     return {**user_interaction, "parquet_path": out_path}
 
 def get_feed_service(n):
-    df = download_random_videos()
+    df = download_all_videos_metadata()
 
     if len(df) == 0:
         return []
@@ -116,3 +121,5 @@ def get_feed_service(n):
 
     sampled = df.sample(n=n, random_state=None)
     return {"videos": sampled.to_dict(orient="records")}
+
+

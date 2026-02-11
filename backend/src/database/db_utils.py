@@ -34,7 +34,13 @@ def upload_product_database(product_id, image):
     return product_path 
 
 
-def update_parquet_table(data_dict, item_type):
+def update_parquet_table(data_dict: dict, item_type: str)->str:
+    """
+    Inserts a parquet file into its corresponding directory
+    
+    :param data_dict: actual data you want to store.
+    :param item_type: database type to be updated.
+    """
     id_key_map = {
         "video": "video_id",
         "product": "product_id",
@@ -90,5 +96,26 @@ def download_product_metadata(product_id: str):
         raise FileNotFoundError(f"Product metadata {product_id} not found")
     return row.iloc[0].to_dict()
 
-def download_random_videos():
-    return pd.read_parquet(VIDEO_PARQUET_DIR)
+def download_all_videos_metadata():
+    df = pd.read_parquet(VIDEO_PARQUET_DIR)
+    if df.empty:
+        raise FileNotFoundError(f"Video metadata not found")
+    return df
+
+def download_user_interactions()-> pd.DataFrame:
+    df = pd.read_parquet(USER_INTERACTION_PARQUET_DIR)
+    if df.empty:
+        return pd.DataFrame("")
+    return df
+
+def download_all_products_metadata()->pd.DataFrame:
+    df = pd.read_parquet(PRODUCT_PARQUET_DIR)
+    if df.empty:
+        raise FileNotFoundError(f"Product metadata not found")
+    return df
+
+
+
+
+
+

@@ -9,7 +9,7 @@ import uuid
 from backend.src.backend_base_services import upload_video_service, upload_product_service, \
     get_vid_by_id_service, get_vid_metadata_by_id_service, get_vids_by_genre_service, \
     get_product_by_id_service, get_product_metadata_by_id_service, get_products_by_category_service, \
-    update_user_interaction_service, get_feed_service
+    update_user_interaction_service, get_feed_service, product_recommendation_service
 
 app = FastAPI()
 
@@ -155,4 +155,11 @@ def get_feed_videos(vids_num: int = 5):
 # Recommendation portion; return top 20 products (its metadata) after calling recommendation system and product selections
 @app.get("/shop/products")
 def get_shop_products():
-    pass
+    try:
+        return_payload = product_recommendation_service()
+        return return_payload
+    except Exception as e:
+        raise HTTPException(status_code = 500, detail = f"get_shop_products failed: {str(e)}")
+
+
+# TODO: add refresh button for shop and videos 

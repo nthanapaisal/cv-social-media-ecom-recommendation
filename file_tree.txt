@@ -1,0 +1,26 @@
+directory tree 
+cv-social-media-ecom-recommendation/
+└─ backend/
+   ├─ configs/
+   └─ src/
+      ├─ database/
+      ├─ detection_classification/
+      └─ product_recommendation/
+
+file tree
+backend/
+├─ configs/
+│  ├─ buckets.json
+│  ├─ classification_labels.json
+│  └─ mapped_labels_buckets.json
+├─ src/
+│  ├─ database/
+│  │  └─ db_utils.py
+│  ├─ detection_classification/
+│  │  └─ detect_classify.py
+│  ├─ product_recommendation/
+│  │  └─ personalized_recommendation.py
+│  ├─ __init__.py
+│  └─ backend_base_services.py
+├─ __init__.py
+└─ main.py
