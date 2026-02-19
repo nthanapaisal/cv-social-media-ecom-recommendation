@@ -2,7 +2,7 @@ import io
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Depends
 from enum import Enum
 from pydantic import BaseModel
-from transformers import pipeline
+from transformers import pipeline, AutoProcessor, Qwen2_5_VLForConditionalGeneration
 from PIL import Image
 import uuid
 
@@ -56,16 +56,30 @@ def startup():
         model="MCG-NJU/videomae-small-finetuned-kinetics",
         device=-1  # CPU (Docker on Mac)
     )
+
+    app.state.video_processor = AutoProcessor.from_pretrained(
+        "Qwen/Qwen2.5-VL-3B-Instruct"
+    )
+
+    app.state.video_model = Qwen2_5_VLForConditionalGeneration.from_pretrained(
+        "Qwen/Qwen2.5-VL-3B-Instruct",
+        torch_dtype=torch.float32
+    ).to("cpu")
+
     print("main.py: Loaded models")
 
 def get_genre_classifier():
     return app.state.genre_classifier
 
+def get_video_model():
+    return app.state.video_model, app.state.video_processor
+
 @app.post("/upload/video/")
 async def upload_video(
     video: UploadFile = File(...),
     request_payload: VideoUploadRequest = Depends(VideoUploadRequest.as_form),
-    genre_clf_model= Depends(get_genre_classifier)
+    genre_clf_model= Depends(get_genre_classifier),
+    vid_txt_to_txt_bundle = Depends(get_video_model)
 ):  
     vid_id = str(uuid.uuid4())
     print(f"main.py: /upload/video id: {vid_id}")
@@ -74,7 +88,8 @@ async def upload_video(
         raise HTTPException(status_code=400, detail="Unsupported video format")
     try:
         upload_payload = upload_video_service(
-            genre_clf_model, 
+            genre_clf_model,
+            vid_txt_to_txt_bundle, 
             vid_id, 
             video, 
             request_payload

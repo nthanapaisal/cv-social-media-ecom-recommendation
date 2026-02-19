@@ -4,13 +4,13 @@ import pandas as pd
 from backend.src.database.db_utils import upload_video_database, upload_product_database, update_parquet_table, \
     download_video, download_video_metadata, download_product, download_product_metadata, download_random_videos
 from backend.src.detection_classification.detect_classify import load_json, classify_video_genre, get_video_duration_ms_from_path
-
+from backend.src.detection_classification.detect_caption import capping_vid
 
 MAPPED_LABELS = load_json("./backend/configs/mapped_labels_buckets.json")
 BUCKETS = load_json("./backend/configs/buckets.json")
 
 def upload_video_service(
-    genre_clf_model, vid_id, video, request_payload
+    genre_clf_model, vid_txt_to_txt_bundle, vid_id, video, request_payload
 ):
     status = "process"
 
@@ -41,7 +41,8 @@ def upload_video_service(
         video_metadata["bucket_num"] = bucket_info[0]
         video_metadata["bucket_name"] = bucket_info[1]
 
-        # object detection 
+        # vid + txt to txt
+        vid_caption = capping_vid(vid_txt_to_txt_bundle, video_path)
 
         # update parquet table
         out_path = update_parquet_table(video_metadata, "video")
