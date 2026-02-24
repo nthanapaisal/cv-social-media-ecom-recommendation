@@ -40,6 +40,20 @@ PRODUCT_CATEGORIES = [
     "gaming",
 ]
 
+# Per-category upload limits. Set to desired integer limits per category.
+PRODUCT_CATEGORY_LIMITS = {
+    "fashion": 2,
+    "beauty": 2,
+    "electronics": 2,
+    "home": 2,
+    "fitness": 2,
+    "food": 2,
+    "baby": 2,
+    "automotive": 2,
+    "pets": 2,
+    "gaming": 2,
+}
+
 def list_json_files(folder: str) -> List[str]:
     p = Path(folder)
     if not p.exists():
@@ -73,13 +87,13 @@ class _RequestPayload:
         self.description = description
         self.category = _CategoryObj(category_value)
 
-def process_product_entry(product: dict, json_path: str, image_base_folder: str, idx: int, debug: bool = False) -> Optional[dict]:
+def process_product_entry(product: dict, json_path: str, image_base_folder: str, idx: int, debug: bool = False, interactive: bool = False, category_counts: Optional[dict] = None) -> Optional[dict]:
     # Extract expected fields (fall back to sensible defaults)
     def _first_value_from_field(field):
         v = product.get(field)
         if v is None:
             return None
-        # If it's a list of language dicts like [{'language_tag':..., 'value': '...'}]
+
         if isinstance(v, list) and len(v) > 0:
             first = v[0]
             if isinstance(first, dict) and "value" in first:
@@ -87,10 +101,9 @@ def process_product_entry(product: dict, json_path: str, image_base_folder: str,
             if isinstance(first, str):
                 return first
             return str(first)
-        # If it's a dict with 'value'
+        
         if isinstance(v, dict) and "value" in v:
             return str(v["value"])
-        # Otherwise stringify
         return str(v)
 
     item_name = _first_value_from_field("item_name") or _first_value_from_field("title") or f"product-{idx}"
@@ -125,10 +138,65 @@ def process_product_entry(product: dict, json_path: str, image_base_folder: str,
             print()
         return None
 
+    # Interactive override: allow user to discard, keep, or choose another category
+    chosen_category = category
+    if interactive:
+        print(f"Product: {item_name}")
+        print(f"Current category: {category}")
+        print("Options: 0=discard, 1=keep current, 2+ = choose category from list below")
+        for i, cat in enumerate(PRODUCT_CATEGORIES):
+            print(f"  {i+2}: {cat}")
+        while True:
+            try:
+                sel = input("Selection: ").strip()
+            except EOFError:
+                if debug:
+                    print("No interactive input available; keeping current category")
+                break
+            if not sel:
+                continue
+            try:
+                si = int(sel)
+            except ValueError:
+                print("Invalid selection — please enter a number")
+                continue
+            if si == 0:
+                if debug:
+                    print(f"User discarded product {item_name}")
+                    print()
+                return None
+            if si == 1:
+                chosen_category = category
+                # check limit for keep
+                limit = PRODUCT_CATEGORY_LIMITS.get(chosen_category, 25)
+                if category_counts is not None and category_counts.get(chosen_category, 0) >= limit:
+                    print(f"Category '{chosen_category}' has reached its limit ({limit}). Choose another or 0 to discard.")
+                    continue
+                break
+            idx_choice = si - 2
+            if 0 <= idx_choice < len(PRODUCT_CATEGORIES):
+                chosen_category = PRODUCT_CATEGORIES[idx_choice]
+                limit = PRODUCT_CATEGORY_LIMITS.get(chosen_category, 25)
+                if category_counts is not None and category_counts.get(chosen_category, 0) >= limit:
+                    print(f"Category '{chosen_category}' has reached its limit ({limit}). Choose another or 0 to discard.")
+                    continue
+                break
+            print("Selection out of range — try again")
+
+    category = chosen_category
+
+    limit = PRODUCT_CATEGORY_LIMITS.get(category, 25)
+    if category_counts is not None and category_counts.get(category, 0) >= limit:
+        if debug:
+            print(f"Skipping upload for {item_name}: category '{category}' reached limit ({limit})")
+        return None
+
     req = _RequestPayload(title=item_name, description=product_description, category_value=category)
     product_id = str(uuid.uuid4())
 
     try:
+        # Update request payload category to match final chosen category
+        req = _RequestPayload(title=item_name, description=product_description, category_value=category)
         result = upload_product_service(product_id, img, req)
         if debug:
             print(f"Uploaded product {product_id}: {result}")
@@ -140,7 +208,7 @@ def process_product_entry(product: dict, json_path: str, image_base_folder: str,
             print(f"Failed to upload product {product_id}: {e}")
         return None
 
-def process_products_in_file(json_path: str, image_base_folder: str, debug: bool = False, category_counts: Optional[dict] = None) -> int:
+def process_products_in_file(json_path: str, image_base_folder: str, debug: bool = False, category_counts: Optional[dict] = None, interactive: bool = False) -> int:
     """Load a JSON file that may contain many product entries and process them.
 
     Returns the number of products processed (successes + skips).
@@ -189,15 +257,17 @@ def process_products_in_file(json_path: str, image_base_folder: str, debug: bool
             pre_cat = detect_category(product.get("item_keywords"))
             if pre_cat is None:
                 # Let process_product_entry handle messaging for missing category
-                res = process_product_entry(product, json_path, image_base_folder, idx, debug=debug)
+                res = process_product_entry(product, json_path, image_base_folder, idx, debug=debug, interactive=interactive, category_counts=category_counts)
                 if res is not None and category_counts is not None:
                     category_counts[res] = category_counts.get(res, 0) + 1
             else:
-                if debug and category_counts is not None and category_counts.get(pre_cat, 0) >= 25:
+                # Enforce per-category cap using PRODUCT_CATEGORY_LIMITS
+                limit = PRODUCT_CATEGORY_LIMITS.get(pre_cat, 25)
+                if debug and category_counts is not None and category_counts.get(pre_cat, 0) >= limit:
                     if debug:
-                        print(f"Skipping product #{idx} in {json_path}: category '{pre_cat}' reached 25-item cap")
+                        print(f"Skipping product #{idx} in {json_path}: category '{pre_cat}' reached {limit}-item cap")
                 else:
-                    res = process_product_entry(product, json_path, image_base_folder, idx, debug=debug)
+                    res = process_product_entry(product, json_path, image_base_folder, idx, debug=debug, interactive=interactive, category_counts=category_counts)
                     if res is not None and category_counts is not None:
                         category_counts[res] = category_counts.get(res, 0) + 1
         except Exception as e:
@@ -211,7 +281,7 @@ def process_products_in_file(json_path: str, image_base_folder: str, debug: bool
 
     return count
 
-def classify_products_in_folder(json_folder: str, image_base_folder: str, debug: bool = False) -> None:
+def classify_products_in_folder(json_folder: str, image_base_folder: str, debug: bool = False, interactive: bool = False) -> None:
     files = list_json_files(json_folder)
     if not files:
         print(f"No json files found in {json_folder}")
@@ -220,7 +290,7 @@ def classify_products_in_folder(json_folder: str, image_base_folder: str, debug:
     category_counts = {}
     for json_path in files:
         try:
-            processed = process_products_in_file(json_path, image_base_folder, debug=debug, category_counts=category_counts)
+            processed = process_products_in_file(json_path, image_base_folder, debug=debug, category_counts=category_counts, interactive=interactive)
             total += processed
             if debug:
                 print(f"Finished {json_path}: {processed} entries processed")
@@ -239,9 +309,10 @@ def main():
     parser.add_argument("--json_folder", help="Path to folder containing product .json files")
     parser.add_argument("--image_base_folder", help="Parent folder for product images referenced by main_image_path")
     parser.add_argument("--debug", action="store_true", help="Enable debug printing")
+    parser.add_argument("--interactive", action="store_true", help="Enable interactive category confirmation")
     args = parser.parse_args()
 
-    classify_products_in_folder(args.json_folder, args.image_base_folder, debug=args.debug)
+    classify_products_in_folder(args.json_folder, args.image_base_folder, debug=args.debug, interactive=args.interactive)
 
 if __name__ == "__main__":
     main()
