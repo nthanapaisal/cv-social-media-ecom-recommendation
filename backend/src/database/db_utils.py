@@ -17,6 +17,8 @@ def upload_video_database(vid_id, video):
     ext = os.path.splitext(video.filename)[1].lower() or ".mp4"
     video_path = os.path.join(VIDEO_DIR, f"{vid_id}{ext}")
 
+    video.file.seek(0)
+    
     with open(video_path, "wb") as f:
         shutil.copyfileobj(video.file, f)  
 

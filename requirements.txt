@@ -3,15 +3,18 @@ fastapi
 uvicorn
 pydantic
 python-multipart
-av
 
 # ML
-transformers
+transformers>=4.35
 torch
-Pillow
+pillow
 ultralytics
 pandas
 pyarrow
 numpy
+easyocr
+opencv-python
+av
+nltk
 
 # Frontend
