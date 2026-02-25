@@ -52,8 +52,8 @@
     "other"
   ],
   "bandaging": [
-    "02",
-    "beauty"
+    "13",
+    "other"
   ],
   "barbequing": [
     "06",
@@ -104,8 +104,8 @@
     "outdoor"
   ],
   "blowing nose": [
-    "02",
-    "beauty"
+    "13",
+    "other"
   ],
   "blowing out candles": [
     "06",
@@ -268,8 +268,8 @@
     "fitness"
   ],
   "climbing ladder": [
-    "11",
-    "outdoor"
+    "13",
+    "other"
   ],
   "climbing tree": [
     "11",
@@ -304,8 +304,8 @@
     "hobby"
   ],
   "cracking neck": [
-    "02",
-    "beauty"
+    "13",
+    "other"
   ],
   "crawling baby": [
     "07",
@@ -548,8 +548,8 @@
     "other"
   ],
   "gargling": [
-    "02",
-    "beauty"
+    "13",
+    "other"
   ],
   "getting a haircut": [
     "02",
@@ -724,8 +724,8 @@
     "other"
   ],
   "laying bricks": [
-    "11",
-    "outdoor"
+    "04",
+    "home"
   ],
   "long jump": [
     "05",
@@ -968,8 +968,8 @@
     "hobby"
   ],
   "playing poker": [
-    "10",
-    "gaming"
+    "08",
+    "hobby"
   ],
   "playing recorder": [
     "08",
@@ -1108,16 +1108,16 @@
     "other"
   ],
   "robot dancing": [
-    "08",
-    "hobby"
+    "03",
+    "electronics"
   ],
   "rock climbing": [
-    "11",
-    "outdoor"
+    "05",
+    "fitness"
   ],
   "rock scissors paper": [
-    "13",
-    "other"
+    "10",
+    "gaming"
   ],
   "roller skating": [
     "05",
@@ -1164,8 +1164,8 @@
     "home"
   ],
   "sharpening pencil": [
-    "08",
-    "hobby"
+    "04",
+    "home"
   ],
   "shaving head": [
     "02",
@@ -1276,12 +1276,12 @@
     "fitness"
   ],
   "sneezing": [
-    "02",
-    "beauty"
+    "13",
+    "other"
   ],
   "sniffing": [
-    "02",
-    "beauty"
+    "13",
+    "other"
   ],
   "snorkeling": [
     "11",

@@ -1,16 +1,17 @@
+import os
 from fastapi import HTTPException
 import pandas as pd
 
 from backend.src.database.db_utils import upload_video_database, upload_product_database, update_parquet_table, \
     download_video, download_video_metadata, download_product, download_product_metadata, download_random_videos
-from backend.src.detection_classification.detect_classify import load_json, classify_video_genre, get_video_duration_ms_from_path
-
+from backend.src.detection.detect_modules import classify_video_genre, ocr_read_frames, zero_shot_classification, capping_video
+from backend.src.detection.detect_utils import load_json, get_video_duration_ms_from_path, get_base_frames, weighted_fusion
 
 MAPPED_LABELS = load_json("./backend/configs/mapped_labels_buckets.json")
 BUCKETS = load_json("./backend/configs/buckets.json")
 
 def upload_video_service(
-    genre_clf_model, vid_id, video, request_payload
+    genre_clf_model, ocr_reader, bart_mnli, caption_model, vid_id, video, request_payload
 ):
     status = "process"
 
@@ -18,7 +19,7 @@ def upload_video_service(
         "video_id": vid_id,
         "video_path": None,
         "duration_ms": None,
-        "caption": request_payload.caption,
+        "description": request_payload.description,
         "bucket_num": None,
         "bucket_name": None
     }
@@ -30,18 +31,49 @@ def upload_video_service(
         status = "uploaded"
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"failed_upload: {e}")
-    
+
     try:
-        # classification
-        classify_payload = classify_video_genre(genre_clf_model, video_path)
+        all_signal_outputs_list = []
 
-        # map to ecom bucket
-        predicted_label = classify_payload[0]["label"]
-        bucket_info = MAPPED_LABELS.get(predicted_label, ("13", "other"))
-        video_metadata["bucket_num"] = bucket_info[0]
-        video_metadata["bucket_name"] = bucket_info[1]
+        # SIGNAL 1: classification
+        top_k = 3
+        classify_payload = classify_video_genre(genre_clf_model, video_path, top_k)
 
-        # object detection 
+        # SIGNAL 1: map classification signal to ecom bucket
+        for prediction in classify_payload:  
+            bucket_info = MAPPED_LABELS.get(prediction["label"], ["13", "other"])
+            all_signal_outputs_list.append(("classification", bucket_info[1], float(prediction.get("score", 0.0))))
+
+        # Get base frames to extract extra signals from vid
+        # Per frame: (element has H x W x RGB(3))  
+        base_frames = get_base_frames(video_path)
+
+        # SIGNAL 2: OCR
+        ocr_text, ocr_quality = ocr_read_frames(base_frames, ocr_reader)
+        
+        # SIGNAL 2: zero shot classfication OCR signal to ecom bucket
+        ocr_signal_bucket, zeroshot_conf = zero_shot_classification(bart_mnli, list(BUCKETS["buckets"].keys()), ocr_text)
+        ocr_conf = ocr_quality * zeroshot_conf
+        all_signal_outputs_list.append(("ocr", ocr_signal_bucket, ocr_conf * 1.5))
+
+        # SIGNAL 3: Video description and scaled conf since description conf could be wrong 
+        description_signal_bucket, description_zeroshot_conf = zero_shot_classification(bart_mnli, list(BUCKETS["buckets"].keys()), video_metadata["description"])
+        all_signal_outputs_list.append(("description", description_signal_bucket, description_zeroshot_conf * 0.5))
+
+        # SIGNAL 4: Capptioning video
+        vid_caption = capping_video(base_frames, caption_model)
+   
+        # SIGNAL 4: Zeroshot on vid capping
+        vid_caption_bucket, vid_caption_conf = zero_shot_classification(bart_mnli, list(BUCKETS["buckets"].keys()), vid_caption)
+        all_signal_outputs_list.append(("vid_caption", vid_caption_bucket, vid_caption_conf * 0.7))
+
+        # Combine all signals outputs and weights fusion to pick best bucket
+        print(f"all_signal_outputs_list: {all_signal_outputs_list}")
+        final_bucket = weighted_fusion(all_signal_outputs_list)
+        print(f"Final Bucket Selection: {final_bucket}")
+
+        video_metadata["bucket_num"] = BUCKETS["buckets"][final_bucket] 
+        video_metadata["bucket_name"] = final_bucket
 
         # update parquet table
         out_path = update_parquet_table(video_metadata, "video")

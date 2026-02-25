@@ -5,6 +5,7 @@ from pydantic import BaseModel
 from transformers import pipeline
 from PIL import Image
 import uuid
+import easyocr
 
 from backend.src.backend_base_services import upload_video_service, upload_product_service, \
     get_vid_by_id_service, get_vid_metadata_by_id_service, get_vids_by_genre_service, \
@@ -14,14 +15,14 @@ from backend.src.backend_base_services import upload_video_service, upload_produ
 app = FastAPI()
 
 class VideoUploadRequest(BaseModel):
-    caption: str
+    description: str
 
     @classmethod
     def as_form(
         cls,
-        caption: str = Form(...)
+        description: str = Form(...)
     ):
-        return cls(caption=caption)
+        return cls(description=description)
 
 class ProductCategory(str, Enum):
     fashion = "fashion"
@@ -56,16 +57,42 @@ def startup():
         model="MCG-NJU/videomae-small-finetuned-kinetics",
         device=-1  # CPU (Docker on Mac)
     )
+    app.state.ocr_reader = easyocr.Reader(["en"], gpu=False)
+    
+    app.state.zero_shot_ocr_classification = pipeline(
+        task="zero-shot-classification",
+        model="facebook/bart-large-mnli",
+        device=-1,  # CPU
+    )
+
+    app.state.caption_model = pipeline(
+        task="image-text-to-text",
+        model="Salesforce/blip-image-captioning-base",
+        device=-1  # CPU
+    ) 
+
     print("main.py: Loaded models")
 
 def get_genre_classifier():
     return app.state.genre_classifier
 
+def get_ocr_reader():
+    return app.state.ocr_reader
+
+def get_bart_mnli():
+    return app.state.zero_shot_ocr_classification
+
+def get_caption_model():
+    return app.state.caption_model
+
 @app.post("/upload/video/")
 async def upload_video(
     video: UploadFile = File(...),
     request_payload: VideoUploadRequest = Depends(VideoUploadRequest.as_form),
-    genre_clf_model= Depends(get_genre_classifier)
+    genre_clf_model= Depends(get_genre_classifier),
+    ocr_reader = Depends(get_ocr_reader),
+    bart_mnli = Depends(get_bart_mnli),
+    caption_model = Depends(get_caption_model)
 ):  
     vid_id = str(uuid.uuid4())
     print(f"main.py: /upload/video id: {vid_id}")
@@ -75,6 +102,9 @@ async def upload_video(
     try:
         upload_payload = upload_video_service(
             genre_clf_model, 
+            ocr_reader,
+            bart_mnli,
+            caption_model,
             vid_id, 
             video, 
             request_payload
