@@ -6,22 +6,24 @@ from typing import List
 from transformers import pipeline
 
 try:
-	from backend.src.detection_classification.detect_classify import (classify_video_genre, load_json, get_video_duration_ms_from_path)
+	from backend.src.detection.detect_modules import classify_video_genre
+	from backend.src.detection.detect_utils import (load_json, get_video_duration_ms_from_path)
 	from backend.src.database.db_utils import update_parquet_table
 except ModuleNotFoundError:
 	import sys
 	from pathlib import Path as _Path
 
-	repo_root = _Path(__file__).resolve().parents[3]
+	repo_root = _Path(__file__).resolve().parents[1]
 	if str(repo_root) not in sys.path:
 		sys.path.insert(0, str(repo_root))
-	from backend.src.detection_classification.detect_classify import (classify_video_genre, load_json, get_video_duration_ms_from_path)
+	from backend.src.detection.detect_modules import classify_video_genre
+	from backend.src.detection.detect_utils import (load_json, get_video_duration_ms_from_path)
 	from backend.src.database.db_utils import update_parquet_table
 
 try:
-	repo_root = Path(__file__).resolve().parents[3]
-	mapped_path = str(repo_root / "backend" / "configs" / "mapped_labels_buckets.json")
-	MAPPED_LABELS = load_json(mapped_path)
+    repo_root = Path(__file__).resolve().parents[1]
+    mapped_path = str(repo_root / "backend" / "configs" / "mapped_labels_buckets.json")
+    MAPPED_LABELS = load_json(mapped_path)
 except Exception:
 	MAPPED_LABELS = {}
 
@@ -78,7 +80,7 @@ def classify_videos_in_folder(folder: str, genre_clf_model) -> None:
 def build_genre_classifier(device: int = -1):
     return pipeline(task="video-classification", model="MCG-NJU/videomae-small-finetuned-kinetics", device=device)
 
-# to run: python ./backend/src/database/preprocess.py /path/to/video/folder
+# to run: python ./batch_scripts/src/database/preprocess.py /path/to/video/folder
 def main():
     parser = argparse.ArgumentParser(description="Classify videos in a folder and print predictions.")
     parser.add_argument("folder", help="Path to folder containing videos")
