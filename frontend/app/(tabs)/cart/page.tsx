@@ -77,7 +77,6 @@ export default function CartPage() {
 
           <div className="space-y-3">
             {cart.map((item) => {
-              const isMock = item.product.product_id.startsWith("mock-");
               const colorClass =
                 CATEGORY_COLORS[item.product.bucket_name] ||
                 CATEGORY_COLORS.other;
@@ -92,17 +91,11 @@ export default function CartPage() {
                     className="shrink-0"
                   >
                     <div className="w-20 h-20 md:w-24 md:h-24 rounded-lg overflow-hidden bg-white/5">
-                      {isMock ? (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <ShoppingBag className="w-6 h-6 text-white/15" />
-                        </div>
-                      ) : (
-                        <img
-                          src={getProductImageUrl(item.product.product_id)}
-                          alt={item.product.title}
-                          className="w-full h-full object-cover"
-                        />
-                      )}
+                      <img
+                        src={getProductImageUrl(item.product.product_id)}
+                        alt={item.product.title}
+                        className="w-full h-full object-cover"
+                      />
                     </div>
                   </Link>
 

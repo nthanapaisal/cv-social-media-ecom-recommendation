@@ -3,7 +3,6 @@
 import { use, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { fetchProductMetadata, getProductImageUrl } from "@/lib/api-client";
-import { getMockProducts } from "@/lib/mock-products";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -20,20 +19,11 @@ export default function ProductDetailPage({
   params: Promise<{ productId: string }>;
 }) {
   const { productId } = use(params);
-  const isMock = productId.startsWith("mock-");
 
   const { data: product, isLoading } = useQuery({
     queryKey: ["product", productId],
-    queryFn: async () => {
-      if (isMock) {
-        const allMock = getMockProducts();
-        const found = allMock.find((p) => p.product_id === productId);
-        if (!found) throw new Error("Not found");
-        return found;
-      }
-      return fetchProductMetadata(productId);
-    },
-    retry: 1,
+    queryFn: () => fetchProductMetadata(productId),
+    retry:1,
   });
 
   const addToCart = useAppStore((s) => s.addToCart);
@@ -105,20 +95,11 @@ export default function ProductDetailPage({
 
       <div className="max-w-5xl mx-auto md:flex md:gap-8 md:p-6 lg:p-8">
         <div className="relative aspect-square bg-white/5 md:w-1/2 md:max-w-md md:rounded-2xl md:overflow-hidden md:shrink-0 md:self-start">
-          {isMock ? (
-            <div className="w-full h-full flex flex-col items-center justify-center gap-3 bg-gradient-to-br from-white/5 to-white/10">
-              <ShoppingBag className="w-16 h-16 text-white/15" />
-              <span className="text-sm text-white/25 capitalize">
-                {product.bucket_name}
-              </span>
-            </div>
-          ) : (
-            <img
-              src={getProductImageUrl(product.product_id)}
-              alt={product.title}
-              className="w-full h-full object-cover"
-            />
-          )}
+          <img
+            src={getProductImageUrl(product.product_id)}
+            alt={product.title}
+            className="w-full h-full object-cover"
+          />
         </div>
 
         <div className="p-4 md:p-0 md:flex-1 space-y-4 md:space-y-5">
@@ -191,18 +172,12 @@ export default function ProductDetailPage({
                   className="block group"
                 >
                   <div className="aspect-square rounded-xl overflow-hidden bg-white/5 border border-white/10">
-                    {p.product_id.startsWith("mock-") ? (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <ShoppingBag className="w-6 h-6 text-white/15" />
-                      </div>
-                    ) : (
-                      <img
-                        src={getProductImageUrl(p.product_id)}
-                        alt={p.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        loading="lazy"
-                      />
-                    )}
+                    <img
+                      src={getProductImageUrl(p.product_id)}
+                      alt={p.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      loading="lazy"
+                    />
                   </div>
                   <p className="text-xs text-white/70 mt-1.5 line-clamp-2">
                     {p.title}

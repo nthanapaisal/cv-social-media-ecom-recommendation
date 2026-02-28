@@ -2,7 +2,6 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { fetchShopProducts } from "@/lib/api-client";
-import { getMockProducts } from "@/lib/mock-products";
 import type { ProductMetadata } from "@/lib/types";
 import { useAppStore } from "@/store/app-store";
 
@@ -11,11 +10,7 @@ export function useProducts(category?: string | null) {
 
   const query = useQuery({
     queryKey: ["shop-products"],
-    queryFn: async () => {
-      const products = await fetchShopProducts();
-      if (products.length > 0) return products;
-      return getMockProducts();
-    },
+    queryFn: fetchShopProducts,
     staleTime: 60_000,
     retry: 1,
   });
