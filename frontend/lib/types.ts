@@ -31,7 +31,7 @@ export interface VideoUploadResponse {
   video_id: string;
   video_path: string;
   duration_ms: number;
-  caption: string;
+  description: string;
   bucket_num: string;
   bucket_name: string;
   status: UploadStatus;

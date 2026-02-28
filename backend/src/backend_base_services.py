@@ -16,6 +16,7 @@ def upload_video_service(
     genre_clf_model, ocr_reader, bart_mnli, caption_model, vid_id, video, request_payload
 ):
     status = "process"
+    out_path = None
 
     video_metadata = {
         "video_id": vid_id,
@@ -59,7 +60,7 @@ def upload_video_service(
         all_signal_outputs_list.append(("ocr", ocr_signal_bucket, ocr_conf * 1.5))
 
         # SIGNAL 3: Video description and scaled conf since description conf could be wrong 
-        description_signal_bucket, description_zeroshot_conf = zero_shot_classification(bart_mnli, list(BUCKETS["buckets"].keys()), video_metadata["description"])
+        description_signal_bucket, description_zeroshot_conf = zero_shot_classification(bart_mnli, list(BUCKETS["buckets"].keys()), video_metadata["caption"])
         all_signal_outputs_list.append(("description", description_signal_bucket, description_zeroshot_conf * 0.5))
 
         # SIGNAL 4: Capptioning video
@@ -82,7 +83,9 @@ def upload_video_service(
 
         status = "completed"
     except Exception as e:
+        print(f"Error during video analysis: {e}")
         status = "uploaded_successful_but_failed_detect_classify"
+        out_path = None
 
     return {**video_metadata, "status": status, "parquet_path": out_path}
 
