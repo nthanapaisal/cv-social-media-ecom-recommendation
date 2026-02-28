@@ -13,7 +13,7 @@ interface ProductGridProps {
 export function ProductGrid({ products, isLoading }: ProductGridProps) {
   if (isLoading) {
     return (
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 px-4 pb-4">
+      <div className="max-w-7xl mx-auto grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 md:gap-4 lg:gap-5 px-4 md:px-6 lg:px-8 pb-4">
         {Array.from({ length: 8 }).map((_, i) => (
           <div key={i} className="space-y-2">
             <Skeleton className="aspect-square rounded-xl" />
@@ -38,7 +38,7 @@ export function ProductGrid({ products, isLoading }: ProductGridProps) {
   }
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 px-4 pb-24">
+    <div className="max-w-7xl mx-auto grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 md:gap-4 lg:gap-5 px-4 md:px-6 lg:px-8 pb-24 md:pb-8">
       {products.map((product) => (
         <ProductCard key={product.product_id} product={product} />
       ))}

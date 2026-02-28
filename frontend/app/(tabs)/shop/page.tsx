@@ -33,7 +33,7 @@ function ShopContent() {
         />
 
         {hasRecommendations && !selectedCategory && (
-          <div className="flex items-center gap-2 px-4 py-2">
+          <div className="max-w-7xl mx-auto flex items-center gap-2 px-4 md:px-6 lg:px-8 py-2">
             <Sparkles className="w-4 h-4 text-yellow-400" />
             <span className="text-xs text-white/50">
               Sorted by your viewing history

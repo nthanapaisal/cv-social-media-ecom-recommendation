@@ -2,8 +2,6 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Badge } from "@/components/ui/badge";
-import { CATEGORY_COLORS } from "@/lib/constants";
 import { getProductImageUrl } from "@/lib/api-client";
 import { ShoppingBag } from "lucide-react";
 import type { ProductMetadata } from "@/lib/types";
@@ -13,8 +11,6 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ product }: ProductCardProps) {
-  const colorClass =
-    CATEGORY_COLORS[product.bucket_name] || CATEGORY_COLORS.other;
   const isMock = product.product_id.startsWith("mock-");
 
   return (
@@ -24,7 +20,7 @@ export function ProductCard({ product }: ProductCardProps) {
       transition={{ type: "spring", stiffness: 400, damping: 25 }}
     >
     <Link href={`/shop/${product.product_id}`} className="group block">
-      <div className="relative aspect-square rounded-xl overflow-hidden bg-white/5 border border-white/10">
+      <div className="relative aspect-square rounded-xl md:rounded-2xl overflow-hidden bg-white/5 border border-white/10">
         {isMock ? (
           <div className="w-full h-full flex flex-col items-center justify-center gap-2 bg-gradient-to-br from-white/5 to-white/10">
             <ShoppingBag className="w-8 h-8 text-white/20" />
@@ -36,20 +32,12 @@ export function ProductCard({ product }: ProductCardProps) {
           <img
             src={getProductImageUrl(product.product_id)}
             alt={product.title}
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
             loading="lazy"
           />
         )}
-        <div className="absolute top-2 left-2">
-          <Badge
-            variant="secondary"
-            className={`${colorClass} text-white border-0 text-[10px]`}
-          >
-            {product.bucket_name}
-          </Badge>
-        </div>
       </div>
-      <div className="mt-2 px-0.5">
+      <div className="mt-2 md:mt-3 px-0.5">
         <p className="text-sm font-medium text-white/90 line-clamp-2 leading-tight">
           {product.title}
         </p>

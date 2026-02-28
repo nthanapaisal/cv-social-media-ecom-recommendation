@@ -54,7 +54,7 @@ export function VideoPlayer({ videoId, isActive }: VideoPlayerProps) {
       <video
         ref={videoRef}
         src={getVideoUrl(videoId)}
-        className="w-full h-full object-contain"
+        className="w-full h-full object-contain md:object-cover md:rounded-lg"
         loop
         playsInline
         muted={muted}

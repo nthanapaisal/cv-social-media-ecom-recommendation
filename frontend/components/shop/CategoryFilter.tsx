@@ -11,11 +11,11 @@ interface CategoryFilterProps {
 
 export function CategoryFilter({ selected, onSelect }: CategoryFilterProps) {
   return (
-    <div className="flex gap-2 overflow-x-auto scrollbar-hide px-4 py-3">
+    <div className="max-w-7xl mx-auto flex gap-2 overflow-x-auto md:flex-wrap md:overflow-visible scrollbar-hide px-4 md:px-6 lg:px-8 py-3">
       <button
         onClick={() => onSelect(null)}
         className={cn(
-          "flex-shrink-0 px-4 py-1.5 rounded-full text-xs font-medium transition-all",
+          "flex-shrink-0 px-4 md:px-5 py-1.5 md:py-2 rounded-full text-xs md:text-sm font-medium transition-all",
           selected === null
             ? "bg-white text-black"
             : "bg-white/10 text-white/70 hover:bg-white/20"
@@ -30,7 +30,7 @@ export function CategoryFilter({ selected, onSelect }: CategoryFilterProps) {
             key={cat}
             onClick={() => onSelect(isActive ? null : cat)}
             className={cn(
-              "flex-shrink-0 px-4 py-1.5 rounded-full text-xs font-medium capitalize transition-all",
+              "flex-shrink-0 px-4 md:px-5 py-1.5 md:py-2 rounded-full text-xs md:text-sm font-medium capitalize transition-all",
               isActive
                 ? `${CATEGORY_COLORS[cat] || "bg-white/20"} text-white`
                 : "bg-white/10 text-white/70 hover:bg-white/20"

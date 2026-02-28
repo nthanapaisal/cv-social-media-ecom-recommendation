@@ -41,31 +41,77 @@ export async function fetchProductMetadata(
 }
 
 export async function uploadVideo(
-  form: FormData
+  form: FormData,
+  onProgress?: (loaded: number, total: number) => void
 ): Promise<VideoUploadResponse> {
-  const res = await fetch(`${API_BASE}/upload/video/`, {
-    method: "POST",
-    body: form,
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+
+    xhr.upload.addEventListener("progress", (e) => {
+      if (e.lengthComputable && onProgress) {
+        onProgress(e.loaded, e.total);
+      }
+    });
+
+    xhr.addEventListener("load", () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        try {
+          const response = JSON.parse(xhr.responseText);
+          console.log("Video upload response:", response);
+          resolve(response);
+        } catch {
+          reject(new Error("Invalid response from server"));
+        }
+      } else {
+        console.error("Video upload failed:", xhr.status, xhr.responseText);
+        reject(new Error(xhr.responseText || "Upload failed"));
+      }
+    });
+
+    xhr.addEventListener("error", () => {
+      reject(new Error("Network error during upload"));
+    });
+
+    xhr.open("POST", `${API_BASE}/upload/video/`);
+    xhr.send(form);
   });
-  if (!res.ok) {
-    const text = await res.text().catch(() => "Upload failed");
-    throw new Error(text);
-  }
-  return res.json();
 }
 
 export async function uploadProduct(
-  form: FormData
+  form: FormData,
+  onProgress?: (loaded: number, total: number) => void
 ): Promise<ProductUploadResponse> {
-  const res = await fetch(`${API_BASE}/upload/product/`, {
-    method: "POST",
-    body: form,
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+
+    xhr.upload.addEventListener("progress", (e) => {
+      if (e.lengthComputable && onProgress) {
+        onProgress(e.loaded, e.total);
+      }
+    });
+
+    xhr.addEventListener("load", () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        try {
+          const response = JSON.parse(xhr.responseText);
+          console.log("Product upload response:", response);
+          resolve(response);
+        } catch {
+          reject(new Error("Invalid response from server"));
+        }
+      } else {
+        console.error("Product upload failed:", xhr.status, xhr.responseText);
+        reject(new Error(xhr.responseText || "Upload failed"));
+      }
+    });
+
+    xhr.addEventListener("error", () => {
+      reject(new Error("Network error during upload"));
+    });
+
+    xhr.open("POST", `${API_BASE}/upload/product/`);
+    xhr.send(form);
   });
-  if (!res.ok) {
-    const text = await res.text().catch(() => "Upload failed");
-    throw new Error(text);
-  }
-  return res.json();
 }
 
 export async function logInteraction(

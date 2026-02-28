@@ -15,6 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 import { CATEGORY_COLORS } from "@/lib/constants";
 import { PRODUCT_CATEGORIES } from "@/lib/types";
 import type { ProductCategory, ProductUploadResponse } from "@/lib/types";
@@ -28,7 +29,7 @@ import {
 import { toast } from "sonner";
 import Link from "next/link";
 
-type UploadPhase = "idle" | "uploading" | "done" | "error";
+type UploadPhase = "idle" | "uploading" | "analyzing" | "finalizing" | "done" | "error";
 
 export function ProductUploadForm() {
   const [file, setFile] = useState<File | null>(null);
@@ -37,6 +38,7 @@ export function ProductUploadForm() {
   const [category, setCategory] = useState<ProductCategory | "">("");
   const [phase, setPhase] = useState<UploadPhase>("idle");
   const [result, setResult] = useState<ProductUploadResponse | null>(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   const imagePreview = useMemo(() => {
     if (!file) return null;
@@ -45,12 +47,29 @@ export function ProductUploadForm() {
 
   const mutation = useMutation({
     mutationFn: async (formData: FormData) => {
-      return await uploadProduct(formData);
+      setPhase("uploading");
+      setUploadProgress(0);
+      
+      const response = await uploadProduct(formData, (loaded, total) => {
+        const progress = Math.round((loaded / total) * 50);
+        setUploadProgress(progress);
+      });
+      
+      setPhase("analyzing");
+      setUploadProgress(50);
+      
+      return response;
     },
     onSuccess: (data) => {
+      setPhase("finalizing");
+      setUploadProgress(90);
       setResult(data);
-      setPhase("done");
-      toast.success("Product uploaded successfully!");
+      
+      setTimeout(() => {
+        setUploadProgress(100);
+        setPhase("done");
+        toast.success("Product uploaded successfully!");
+      }, 500);
     },
     onError: (err) => {
       setPhase("error");
@@ -82,7 +101,7 @@ export function ProductUploadForm() {
     const colorClass =
       CATEGORY_COLORS[result.bucket_name] || CATEGORY_COLORS.other;
     return (
-      <div className="flex flex-col items-center gap-6 p-6 text-center">
+      <div className="flex flex-col items-center gap-6 p-6 md:p-8 text-center">
         <CheckCircle2 className="w-16 h-16 text-green-400" />
         <div>
           <h3 className="text-lg font-semibold">Product Listed!</h3>
@@ -116,7 +135,7 @@ export function ProductUploadForm() {
 
   if (phase === "error") {
     return (
-      <div className="flex flex-col items-center gap-6 p-6 text-center">
+      <div className="flex flex-col items-center gap-6 p-6 md:p-8 text-center">
         <AlertCircle className="w-16 h-16 text-red-400" />
         <div>
           <h3 className="text-lg font-semibold">Upload Failed</h3>
@@ -136,11 +155,11 @@ export function ProductUploadForm() {
     );
   }
 
-  const isUploading = mutation.isPending;
+  const isUploading = ["uploading", "analyzing", "finalizing"].includes(phase) || mutation.isPending;
   const isValid = file && title.trim() && description.trim() && category;
 
   return (
-    <div className="space-y-5 p-4">
+    <div className="space-y-5 p-4 md:p-6">
       <FileDropzone
         accept="image/*,.jpg,.jpeg,.png,.webp"
         onFileSelect={setFile}
@@ -151,11 +170,13 @@ export function ProductUploadForm() {
         hint="JPG, PNG, WebP"
         preview={
           imagePreview ? (
-            <img
-              src={imagePreview}
-              alt="Preview"
-              className="w-full aspect-square object-cover"
-            />
+            <div className="flex justify-center bg-black/20 p-4">
+              <img
+                src={imagePreview}
+                alt="Preview"
+                className="max-h-64 md:max-h-72 w-auto rounded-lg object-contain"
+              />
+            </div>
           ) : undefined
         }
       />
@@ -204,6 +225,30 @@ export function ProductUploadForm() {
           </SelectContent>
         </Select>
       </div>
+
+      {isUploading && (
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Loader2 className="w-4 h-4 animate-spin text-white/60" />
+              <span className="text-sm text-white/60">
+                {phase === "uploading" && "Uploading image..."}
+                {phase === "analyzing" && "Processing with AI models..."}
+                {phase === "finalizing" && "Finalizing listing..."}
+              </span>
+            </div>
+            <span className="text-xs text-white/40 font-mono">
+              {uploadProgress}%
+            </span>
+          </div>
+          <Progress value={uploadProgress} className="h-2" />
+          <div className="flex justify-between text-xs text-white/30">
+            <span>Upload</span>
+            <span>Analyze</span>
+            <span>Complete</span>
+          </div>
+        </div>
+      )}
 
       <Button
         onClick={handleSubmit}

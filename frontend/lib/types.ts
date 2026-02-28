@@ -16,6 +16,11 @@ export interface ProductMetadata {
   bucket_name: string;
 }
 
+export interface CartItem {
+  product: ProductMetadata;
+  quantity: number;
+}
+
 export interface InteractionResponse {
   video_id: string;
   watch_time_ms: number;

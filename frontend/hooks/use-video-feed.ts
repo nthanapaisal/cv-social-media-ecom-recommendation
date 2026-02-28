@@ -15,6 +15,7 @@ export function useVideoFeed() {
       const videos = await fetchFeed(FEED_PAGE_SIZE);
       return videos.filter((v) => {
         if (seenIds.current.has(v.video_id)) return false;
+        if (v.video_path.toLowerCase().endsWith(".avi")) return false;
         seenIds.current.add(v.video_id);
         return true;
       });

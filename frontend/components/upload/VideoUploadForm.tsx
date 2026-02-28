@@ -20,13 +20,14 @@ import { toast } from "sonner";
 import Link from "next/link";
 import type { VideoUploadResponse } from "@/lib/types";
 
-type UploadPhase = "idle" | "uploading" | "processing" | "done" | "error";
+type UploadPhase = "idle" | "uploading" | "analyzing_video" | "analyzing_content" | "finalizing" | "done" | "error";
 
 export function VideoUploadForm() {
   const [file, setFile] = useState<File | null>(null);
   const [caption, setCaption] = useState("");
   const [phase, setPhase] = useState<UploadPhase>("idle");
   const [result, setResult] = useState<VideoUploadResponse | null>(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   const videoPreview = useMemo(() => {
     if (!file) return null;
@@ -36,13 +37,28 @@ export function VideoUploadForm() {
   const mutation = useMutation({
     mutationFn: async (formData: FormData) => {
       setPhase("uploading");
-      const response = await uploadVideo(formData);
+      setUploadProgress(0);
+      
+      const response = await uploadVideo(formData, (loaded, total) => {
+        const progress = Math.round((loaded / total) * 40);
+        setUploadProgress(progress);
+      });
+      
+      setPhase("analyzing_content");
+      setUploadProgress(40);
+      
       return response;
     },
     onSuccess: (data) => {
+      setPhase("finalizing");
+      setUploadProgress(90);
       setResult(data);
-      setPhase("done");
-      toast.success("Video uploaded successfully!");
+      
+      setTimeout(() => {
+        setUploadProgress(100);
+        setPhase("done");
+        toast.success("Video uploaded successfully!");
+      }, 500);
     },
     onError: (err) => {
       setPhase("error");
@@ -54,7 +70,7 @@ export function VideoUploadForm() {
     if (!file || !caption.trim()) return;
     const formData = new FormData();
     formData.append("video", file);
-    formData.append("caption", caption.trim());
+    formData.append("description", caption.trim());
     setPhase("uploading");
     mutation.mutate(formData);
   };
@@ -70,7 +86,7 @@ export function VideoUploadForm() {
     const colorClass =
       CATEGORY_COLORS[result.bucket_name] || CATEGORY_COLORS.other;
     return (
-      <div className="flex flex-col items-center gap-6 p-6 text-center">
+      <div className="flex flex-col items-center gap-6 p-6 md:p-8 text-center">
         <CheckCircle2 className="w-16 h-16 text-green-400" />
         <div>
           <h3 className="text-lg font-semibold">Upload Complete!</h3>
@@ -110,7 +126,7 @@ export function VideoUploadForm() {
 
   if (phase === "error") {
     return (
-      <div className="flex flex-col items-center gap-6 p-6 text-center">
+      <div className="flex flex-col items-center gap-6 p-6 md:p-8 text-center">
         <AlertCircle className="w-16 h-16 text-red-400" />
         <div>
           <h3 className="text-lg font-semibold">Upload Failed</h3>
@@ -130,10 +146,10 @@ export function VideoUploadForm() {
     );
   }
 
-  const isUploading = phase === "uploading" || mutation.isPending;
+  const isUploading = ["uploading", "analyzing_video", "analyzing_content", "finalizing"].includes(phase) || mutation.isPending;
 
   return (
-    <div className="space-y-5 p-4">
+    <div className="space-y-5 p-4 md:p-6">
       <FileDropzone
         accept="video/mp4,video/quicktime,video/x-matroska,video/webm,video/x-msvideo,.mp4,.mov,.mkv,.webm,.avi"
         onFileSelect={setFile}
@@ -167,16 +183,28 @@ export function VideoUploadForm() {
       </div>
 
       {isUploading && (
-        <div className="space-y-2">
-          <div className="flex items-center gap-2">
-            <Loader2 className="w-4 h-4 animate-spin text-white/60" />
-            <span className="text-sm text-white/60">
-              {phase === "uploading"
-                ? "Uploading video..."
-                : "Analyzing with CV model..."}
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Loader2 className="w-4 h-4 animate-spin text-white/60" />
+              <span className="text-sm text-white/60">
+                {phase === "uploading" && "Uploading video..."}
+                {phase === "analyzing_video" && "Analyzing video content..."}
+                {phase === "analyzing_content" && "Processing with AI models..."}
+                {phase === "finalizing" && "Finalizing upload..."}
+              </span>
+            </div>
+            <span className="text-xs text-white/40 font-mono">
+              {uploadProgress}%
             </span>
           </div>
-          <Progress value={phase === "uploading" ? 50 : 80} className="h-1" />
+          <Progress value={uploadProgress} className="h-2" />
+          <div className="flex justify-between text-xs text-white/30">
+            <span>Upload</span>
+            <span>Analyze</span>
+            <span>Process</span>
+            <span>Complete</span>
+          </div>
         </div>
       )}
 

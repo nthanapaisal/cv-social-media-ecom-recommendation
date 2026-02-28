@@ -15,6 +15,8 @@ interface VideoCardProps {
 export function VideoCard({ video, onVisible }: VideoCardProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isVisible, setIsVisible] = useState(false);
+  const [captionExpanded, setCaptionExpanded] = useState(false);
+  const caption = video.caption?.trim() || "";
 
   useEffect(() => {
     const el = containerRef.current;
@@ -42,28 +44,57 @@ export function VideoCard({ video, onVisible }: VideoCardProps) {
   return (
     <div
       ref={containerRef}
-      className="relative w-full h-[100dvh] snap-start snap-always flex-shrink-0"
+      className="relative isolate w-full h-[100dvh] md:h-full snap-start snap-always flex-shrink-0"
     >
       <VideoPlayer videoId={video.video_id} isActive={isVisible} />
 
-      <div className="absolute bottom-0 left-0 right-0 p-4 pb-20 bg-gradient-to-t from-black/80 via-black/40 to-transparent pointer-events-none">
-        <div className="pointer-events-auto max-w-[80%]">
-          <p className="text-white text-sm font-medium leading-snug line-clamp-3">
-            {video.caption}
-          </p>
-        </div>
-      </div>
-
-      <div className="absolute right-3 bottom-28 flex flex-col items-center gap-4 pointer-events-auto">
+      {/* Right side action buttons — TikTok style */}
+      <div className="absolute right-3 bottom-28 md:bottom-20 z-20 flex flex-col items-center gap-5 pointer-events-auto">
         <Link
           href={`/shop?category=${video.bucket_name}`}
           className="flex flex-col items-center gap-1 text-white/80 hover:text-white transition-colors"
         >
-          <div className="w-10 h-10 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center">
+          <div className="w-11 h-11 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center border border-white/10">
             <ShoppingBag className="w-5 h-5" />
           </div>
-          <span className="text-[10px]">Shop</span>
+          <span className="text-[10px] font-medium">Shop</span>
         </Link>
+      </div>
+
+      {/* Bottom caption overlay — always visible like TikTok/Instagram */}
+      <div className="absolute bottom-0 left-0 right-0 z-20 pointer-events-none">
+        <div className="bg-gradient-to-t from-black/70 via-black/30 to-transparent pt-20 pb-20 md:pb-6 px-4">
+          <div className="pointer-events-auto max-w-[75%]">
+            {/* Category hashtag */}
+            <p className="text-white/70 text-xs font-semibold mb-1 drop-shadow-lg capitalize">
+              #{video.bucket_name}
+            </p>
+
+            {/* Caption text */}
+            {caption ? (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setCaptionExpanded((v) => !v);
+                }}
+                className="text-left"
+              >
+                <p
+                  className={`text-white text-sm leading-snug drop-shadow-lg ${
+                    captionExpanded ? "" : "line-clamp-2"
+                  }`}
+                >
+                  {caption}
+                </p>
+                {!captionExpanded && caption.length > 60 && (
+                  <span className="text-white/60 text-xs font-medium mt-0.5 inline-block">
+                    ... more
+                  </span>
+                )}
+              </button>
+            ) : null}
+          </div>
+        </div>
       </div>
     </div>
   );
