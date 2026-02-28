@@ -3,8 +3,6 @@
 import { useRef, useEffect, useState } from "react";
 import { VideoPlayer } from "./VideoPlayer";
 import { useInteractionTracker } from "@/hooks/use-interaction-tracker";
-import { Badge } from "@/components/ui/badge";
-import { CATEGORY_COLORS } from "@/lib/constants";
 import { ShoppingBag } from "lucide-react";
 import Link from "next/link";
 import type { VideoMetadata } from "@/lib/types";
@@ -41,8 +39,6 @@ export function VideoCard({ video, onVisible }: VideoCardProps) {
     isVisible
   );
 
-  const colorClass = CATEGORY_COLORS[video.bucket_name] || CATEGORY_COLORS.other;
-
   return (
     <div
       ref={containerRef}
@@ -52,15 +48,9 @@ export function VideoCard({ video, onVisible }: VideoCardProps) {
 
       <div className="absolute bottom-0 left-0 right-0 p-4 pb-20 bg-gradient-to-t from-black/80 via-black/40 to-transparent pointer-events-none">
         <div className="pointer-events-auto max-w-[80%]">
-          <p className="text-white text-sm font-medium leading-snug mb-2 line-clamp-3">
+          <p className="text-white text-sm font-medium leading-snug line-clamp-3">
             {video.caption}
           </p>
-          <Badge
-            variant="secondary"
-            className={`${colorClass} text-white border-0 text-xs`}
-          >
-            {video.bucket_name}
-          </Badge>
         </div>
       </div>
 
