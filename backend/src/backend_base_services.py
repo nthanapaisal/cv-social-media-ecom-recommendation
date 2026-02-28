@@ -60,7 +60,7 @@ def upload_video_service(
         all_signal_outputs_list.append(("ocr", ocr_signal_bucket, ocr_conf * 1.5))
 
         # SIGNAL 3: Video description and scaled conf since description conf could be wrong 
-        description_signal_bucket, description_zeroshot_conf = zero_shot_classification(bart_mnli, list(BUCKETS["buckets"].keys()), video_metadata["caption"])
+        description_signal_bucket, description_zeroshot_conf = zero_shot_classification(bart_mnli, list(BUCKETS["buckets"].keys()), video_metadata["description"])
         all_signal_outputs_list.append(("description", description_signal_bucket, description_zeroshot_conf * 0.5))
 
         # SIGNAL 4: Capptioning video
