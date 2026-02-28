@@ -9,7 +9,8 @@ const REPORT_INTERVAL_MS = 3000;
 export function useInteractionTracker(
   videoId: string | null,
   bucketName: string | null,
-  isVisible: boolean
+  isVisible: boolean,
+  isPlaying?: boolean
 ) {
   const startTimeRef = useRef<number | null>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -27,18 +28,23 @@ export function useInteractionTracker(
   }, [videoId]);
 
   useEffect(() => {
-    if (isVisible && videoId) {
-      startTimeRef.current = Date.now();
+    if (isVisible && videoId && isPlaying !== false) {
+      if (!startTimeRef.current) {
+        startTimeRef.current = Date.now();
+      }
 
       if (bucketName) {
         addWatchedBucket(bucketName);
       }
 
-      intervalRef.current = setInterval(report, REPORT_INTERVAL_MS);
+      if (!intervalRef.current) {
+        intervalRef.current = setInterval(report, REPORT_INTERVAL_MS);
+      }
 
       return () => {
         report();
         if (intervalRef.current) clearInterval(intervalRef.current);
+        intervalRef.current = null;
         startTimeRef.current = null;
       };
     } else {
@@ -51,7 +57,7 @@ export function useInteractionTracker(
         startTimeRef.current = null;
       }
     }
-  }, [isVisible, videoId, bucketName, report, addWatchedBucket]);
+  }, [isVisible, videoId, bucketName, isPlaying, report, addWatchedBucket]);
 
   useEffect(() => {
     const handleVisibilityChange = () => {

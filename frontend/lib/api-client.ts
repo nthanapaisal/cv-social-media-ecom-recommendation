@@ -16,6 +16,15 @@ function normalizeFeedResponse(data: unknown): VideoMetadata[] {
   return [];
 }
 
+function normalizeShopProductsResponse(data: unknown): ProductMetadata[] {
+  if (Array.isArray(data)) return data;
+  if (data && typeof data === "object" && "products" in data) {
+    const obj = data as { products: ProductMetadata[] };
+    return Array.isArray(obj.products) ? obj.products : [];
+  }
+  return [];
+}
+
 export async function fetchFeed(vidsNum = 5): Promise<VideoMetadata[]> {
   const res = await fetch(`${API_BASE}/feed/videos?vids_num=${vidsNum}`);
   if (!res.ok) throw new Error(`Feed fetch failed: ${res.status}`);
@@ -57,13 +66,11 @@ export async function uploadVideo(
       if (xhr.status >= 200 && xhr.status < 300) {
         try {
           const response = JSON.parse(xhr.responseText);
-          console.log("Video upload response:", response);
           resolve(response);
         } catch {
           reject(new Error("Invalid response from server"));
         }
       } else {
-        console.error("Video upload failed:", xhr.status, xhr.responseText);
         reject(new Error(xhr.responseText || "Upload failed"));
       }
     });
@@ -94,13 +101,11 @@ export async function uploadProduct(
       if (xhr.status >= 200 && xhr.status < 300) {
         try {
           const response = JSON.parse(xhr.responseText);
-          console.log("Product upload response:", response);
           resolve(response);
         } catch {
           reject(new Error("Invalid response from server"));
         }
       } else {
-        console.error("Product upload failed:", xhr.status, xhr.responseText);
         reject(new Error(xhr.responseText || "Upload failed"));
       }
     });
@@ -131,10 +136,7 @@ export async function fetchShopProducts(): Promise<ProductMetadata[]> {
     const res = await fetch(`${API_BASE}/shop/products`);
     if (!res.ok) return [];
     const data = await res.json();
-    if (!data) return [];
-    if (Array.isArray(data)) return data;
-    if (data.products && Array.isArray(data.products)) return data.products;
-    return [];
+    return normalizeShopProductsResponse(data);
   } catch {
     return [];
   }

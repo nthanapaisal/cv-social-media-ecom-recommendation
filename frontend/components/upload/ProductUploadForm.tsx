@@ -19,15 +19,13 @@ import { Progress } from "@/components/ui/progress";
 import { CATEGORY_COLORS } from "@/lib/constants";
 import { PRODUCT_CATEGORIES } from "@/lib/types";
 import type { ProductCategory, ProductUploadResponse } from "@/lib/types";
-import {
-  Loader2,
-  CheckCircle2,
-  AlertCircle,
-  Image as ImageIcon,
-  Upload,
-} from "lucide-react";
-import { toast } from "sonner";
-import Link from "next/link";
+
+const PROGRESS_THRESHOLDS = {
+  UPLOAD_COMPLETE: 50,
+  ANALYZING: 70,
+  FINALIZING: 90,
+  COMPLETE: 100,
+} as const;
 
 type UploadPhase = "idle" | "uploading" | "analyzing" | "finalizing" | "done" | "error";
 
@@ -49,24 +47,24 @@ export function ProductUploadForm() {
     mutationFn: async (formData: FormData) => {
       setPhase("uploading");
       setUploadProgress(0);
-      
+
       const response = await uploadProduct(formData, (loaded, total) => {
-        const progress = Math.round((loaded / total) * 50);
+        const progress = Math.round((loaded / total) * PROGRESS_THRESHOLDS.UPLOAD_COMPLETE);
         setUploadProgress(progress);
       });
-      
+
       setPhase("analyzing");
-      setUploadProgress(50);
-      
+      setUploadProgress(PROGRESS_THRESHOLDS.ANALYZING);
+
       return response;
     },
     onSuccess: (data) => {
       setPhase("finalizing");
-      setUploadProgress(90);
+      setUploadProgress(PROGRESS_THRESHOLDS.FINALIZING);
       setResult(data);
-      
+
       setTimeout(() => {
-        setUploadProgress(100);
+        setUploadProgress(PROGRESS_THRESHOLDS.COMPLETE);
         setPhase("done");
         toast.success("Product uploaded successfully!");
       }, 500);
@@ -100,23 +98,36 @@ export function ProductUploadForm() {
   if (phase === "done" && result) {
     const colorClass =
       CATEGORY_COLORS[result.bucket_name] || CATEGORY_COLORS.other;
+    const hasAnalysisWarnings = result.status === "uploaded_successful_but_failed_detect_classify";
+
     return (
       <div className="flex flex-col items-center gap-6 p-6 md:p-8 text-center">
-        <CheckCircle2 className="w-16 h-16 text-green-400" />
+        <CheckCircle2 className={`w-16 h-16 ${hasAnalysisWarnings ? "text-yellow-400" : "text-green-400"}`} />
         <div>
-          <h3 className="text-lg font-semibold">Product Listed!</h3>
+          <h3 className="text-lg font-semibold">
+            {hasAnalysisWarnings ? "Product Listed with Warnings" : "Product Listed!"}
+          </h3>
           <p className="text-sm text-white/50 mt-1">{result.title}</p>
         </div>
+        {hasAnalysisWarnings && (
+          <div className="w-full bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-3 text-left">
+            <p className="text-sm text-yellow-200">
+              ⚠️ AI analysis encountered an error. Your product was saved but category may need manual review.
+            </p>
+          </div>
+        )}
         <div className="w-full bg-white/5 rounded-xl p-4 text-left space-y-2">
-          <p className="text-sm">
-            <span className="text-white/50">Category: </span>
-            <Badge
-              variant="secondary"
-              className={`${colorClass} text-white border-0 text-xs`}
-            >
-              {result.bucket_name}
-            </Badge>
-          </p>
+          {result.bucket_name && (
+            <p className="text-sm">
+              <span className="text-white/50">Category: </span>
+              <Badge
+                variant="secondary"
+                className={`${colorClass} text-white border-0 text-xs capitalize`}
+              >
+                {result.bucket_name}
+              </Badge>
+            </p>
+          )}
           <p className="text-sm text-white/50 break-all">
             ID: {result.product_id}
           </p>

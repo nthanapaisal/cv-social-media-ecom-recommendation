@@ -15,6 +15,7 @@ interface VideoCardProps {
 export function VideoCard({ video, onVisible }: VideoCardProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isVisible, setIsVisible] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
   const [captionExpanded, setCaptionExpanded] = useState(false);
   const caption = video.caption?.trim() || "";
 
@@ -37,8 +38,9 @@ export function VideoCard({ video, onVisible }: VideoCardProps) {
 
   useInteractionTracker(
     isVisible ? video.video_id : null,
-    video.bucket_name,
-    isVisible
+    video.bucket_name || null,
+    isVisible,
+    isPlaying
   );
 
   return (
@@ -46,19 +48,25 @@ export function VideoCard({ video, onVisible }: VideoCardProps) {
       ref={containerRef}
       className="relative isolate w-full h-[100dvh] md:h-full snap-start snap-always flex-shrink-0"
     >
-      <VideoPlayer videoId={video.video_id} isActive={isVisible} />
+      <VideoPlayer
+        videoId={video.video_id}
+        isActive={isVisible}
+        onPlayStateChange={setIsPlaying}
+      />
 
       {/* Right side action buttons — TikTok style */}
       <div className="absolute right-3 bottom-28 md:bottom-20 z-20 flex flex-col items-center gap-5 pointer-events-auto">
-        <Link
-          href={`/shop?category=${video.bucket_name}`}
-          className="flex flex-col items-center gap-1 text-white/80 hover:text-white transition-colors"
-        >
-          <div className="w-11 h-11 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center border border-white/10">
-            <ShoppingBag className="w-5 h-5" />
-          </div>
-          <span className="text-[10px] font-medium">Shop</span>
-        </Link>
+        {video.bucket_name && (
+          <Link
+            href={`/shop?category=${video.bucket_name}`}
+            className="flex flex-col items-center gap-1 text-white/80 hover:text-white transition-colors"
+          >
+            <div className="w-11 h-11 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center border border-white/10">
+              <ShoppingBag className="w-5 h-5" />
+            </div>
+            <span className="text-[10px] font-medium">Shop</span>
+          </Link>
+        )}
       </div>
 
       {/* Bottom caption overlay — always visible like TikTok/Instagram */}
@@ -66,9 +74,11 @@ export function VideoCard({ video, onVisible }: VideoCardProps) {
         <div className="bg-gradient-to-t from-black/70 via-black/30 to-transparent pt-20 pb-20 md:pb-6 px-4">
           <div className="pointer-events-auto max-w-[75%]">
             {/* Category hashtag */}
-            <p className="text-white/70 text-xs font-semibold mb-1 drop-shadow-lg capitalize">
-              #{video.bucket_name}
-            </p>
+            {video.bucket_name && (
+              <p className="text-white/70 text-xs font-semibold mb-1 drop-shadow-lg capitalize">
+                #{video.bucket_name}
+              </p>
+            )}
 
             {/* Caption text */}
             {caption ? (

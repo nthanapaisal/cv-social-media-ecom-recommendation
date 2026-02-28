@@ -81,7 +81,7 @@ export const useAppStore = create<AppState>()(
     }),
     {
       name: "vibeshop-storage",
-      partialize: (state) => ({ cart: state.cart }),
+      partialize: (state) => ({ cart: state.cart, watchedBuckets: state.watchedBuckets }),
     }
   )
 );

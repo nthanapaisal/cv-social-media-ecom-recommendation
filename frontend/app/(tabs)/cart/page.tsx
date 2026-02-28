@@ -118,7 +118,7 @@ export default function CartPage() {
                       </Link>
                       <Badge
                         variant="secondary"
-                        className={`${colorClass} text-white border-0 text-[10px] mt-1.5`}
+                        className={`${colorClass} text-white border-0 text-[10px] mt-1.5 capitalize`}
                       >
                         {item.product.bucket_name}
                       </Badge>

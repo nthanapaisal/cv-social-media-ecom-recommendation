@@ -52,7 +52,7 @@ export default function ProductDetailPage({
     setTimeout(() => setJustAdded(false), 1500);
   };
 
-  const { products: relatedProducts } = useProducts(
+  const { products: relatedProducts, isLoading: isLoadingRelated } = useProducts(
     product?.bucket_name ?? null
   );
   const related = relatedProducts.filter(
@@ -129,7 +129,7 @@ export default function ProductDetailPage({
               </h1>
               <Badge
                 variant="secondary"
-                className={`${colorClass} text-white border-0 text-xs mt-2`}
+                className={`${colorClass} text-white border-0 text-xs mt-2 capitalize`}
               >
                 {product.bucket_name}
               </Badge>
@@ -168,38 +168,49 @@ export default function ProductDetailPage({
         </div>
       </div>
 
-      {related.length > 0 && (
+      {(isLoadingRelated || related.length > 0) && (
         <div className="max-w-5xl mx-auto p-4 md:px-6 lg:px-8 pt-2">
           <h3 className="text-sm font-medium text-white/70 mb-3">
             Related Products
           </h3>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-            {related.map((p) => (
-              <Link
-                key={p.product_id}
-                href={`/shop/${p.product_id}`}
-                className="block group"
-              >
-                <div className="aspect-square rounded-xl overflow-hidden bg-white/5 border border-white/10">
-                  {p.product_id.startsWith("mock-") ? (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <ShoppingBag className="w-6 h-6 text-white/15" />
-                    </div>
-                  ) : (
-                    <img
-                      src={getProductImageUrl(p.product_id)}
-                      alt={p.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                      loading="lazy"
-                    />
-                  )}
+          {isLoadingRelated ? (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="space-y-2">
+                  <Skeleton className="aspect-square rounded-xl" />
+                  <Skeleton className="h-4 w-3/4" />
                 </div>
-                <p className="text-xs text-white/70 mt-1.5 line-clamp-2">
-                  {p.title}
-                </p>
-              </Link>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : related.length > 0 ? (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+              {related.map((p) => (
+                <Link
+                  key={p.product_id}
+                  href={`/shop/${p.product_id}`}
+                  className="block group"
+                >
+                  <div className="aspect-square rounded-xl overflow-hidden bg-white/5 border border-white/10">
+                    {p.product_id.startsWith("mock-") ? (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <ShoppingBag className="w-6 h-6 text-white/15" />
+                      </div>
+                    ) : (
+                      <img
+                        src={getProductImageUrl(p.product_id)}
+                        alt={p.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        loading="lazy"
+                      />
+                    )}
+                  </div>
+                  <p className="text-xs text-white/70 mt-1.5 line-clamp-2">
+                    {p.title}
+                  </p>
+                </Link>
+              ))}
+            </div>
+          ) : null}
         </div>
       )}
     </div>

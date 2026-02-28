@@ -4,13 +4,15 @@ import { useEffect, useRef, useCallback, useState } from "react";
 import { getVideoUrl } from "@/lib/api-client";
 import { useAppStore } from "@/store/app-store";
 import { Volume2, VolumeX, Play, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 interface VideoPlayerProps {
   videoId: string;
   isActive: boolean;
+  onPlayStateChange?: (isPlaying: boolean) => void;
 }
 
-export function VideoPlayer({ videoId, isActive }: VideoPlayerProps) {
+export function VideoPlayer({ videoId, isActive, onPlayStateChange }: VideoPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [showPlayIcon, setShowPlayIcon] = useState(false);
@@ -23,7 +25,14 @@ export function VideoPlayer({ videoId, isActive }: VideoPlayerProps) {
     if (!video) return;
 
     if (isActive) {
-      video.play().catch(() => {});
+      video.play().catch((error) => {
+        if (error.name === 'NotAllowedError') {
+          toast('Tap to play video', {
+            description: 'Autoplay is disabled for this video',
+            duration: 2000,
+          });
+        }
+      });
     } else {
       video.pause();
       video.currentTime = 0;
@@ -35,6 +44,10 @@ export function VideoPlayer({ videoId, isActive }: VideoPlayerProps) {
     if (!video) return;
     video.muted = muted;
   }, [muted]);
+
+  useEffect(() => {
+    onPlayStateChange?.(isPlaying);
+  }, [isPlaying, onPlayStateChange]);
 
   const handleTap = useCallback(() => {
     const video = videoRef.current;

@@ -20,6 +20,13 @@ import { toast } from "sonner";
 import Link from "next/link";
 import type { VideoUploadResponse } from "@/lib/types";
 
+const PROGRESS_THRESHOLDS = {
+  UPLOAD_COMPLETE: 40,
+  ANALYZING: 70,
+  FINALIZING: 90,
+  COMPLETE: 100,
+} as const;
+
 type UploadPhase = "idle" | "uploading" | "analyzing_video" | "analyzing_content" | "finalizing" | "done" | "error";
 
 export function VideoUploadForm() {
@@ -38,24 +45,24 @@ export function VideoUploadForm() {
     mutationFn: async (formData: FormData) => {
       setPhase("uploading");
       setUploadProgress(0);
-      
+
       const response = await uploadVideo(formData, (loaded, total) => {
-        const progress = Math.round((loaded / total) * 40);
+        const progress = Math.round((loaded / total) * PROGRESS_THRESHOLDS.UPLOAD_COMPLETE);
         setUploadProgress(progress);
       });
-      
+
       setPhase("analyzing_content");
-      setUploadProgress(40);
-      
+      setUploadProgress(PROGRESS_THRESHOLDS.ANALYZING);
+
       return response;
     },
     onSuccess: (data) => {
       setPhase("finalizing");
-      setUploadProgress(90);
+      setUploadProgress(PROGRESS_THRESHOLDS.FINALIZING);
       setResult(data);
-      
+
       setTimeout(() => {
-        setUploadProgress(100);
+        setUploadProgress(PROGRESS_THRESHOLDS.COMPLETE);
         setPhase("done");
         toast.success("Video uploaded successfully!");
       }, 500);
@@ -85,29 +92,46 @@ export function VideoUploadForm() {
   if (phase === "done" && result) {
     const colorClass =
       CATEGORY_COLORS[result.bucket_name] || CATEGORY_COLORS.other;
+    const hasAnalysisWarnings = result.status === "uploaded_successful_but_failed_detect_classify";
+
     return (
       <div className="flex flex-col items-center gap-6 p-6 md:p-8 text-center">
-        <CheckCircle2 className="w-16 h-16 text-green-400" />
+        <CheckCircle2 className={`w-16 h-16 ${hasAnalysisWarnings ? "text-yellow-400" : "text-green-400"}`} />
         <div>
-          <h3 className="text-lg font-semibold">Upload Complete!</h3>
+          <h3 className="text-lg font-semibold">
+            {hasAnalysisWarnings ? "Upload Complete with Warnings" : "Upload Complete!"}
+          </h3>
           <p className="text-sm text-white/50 mt-1">
-            Your video has been processed
+            {hasAnalysisWarnings
+              ? "Video uploaded, but automatic categorization failed. It will be processed later."
+              : "Your video has been processed successfully"}
           </p>
         </div>
+        {hasAnalysisWarnings && (
+          <div className="w-full bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-3 text-left">
+            <p className="text-sm text-yellow-200">
+              ⚠️ AI analysis encountered an error. Your video was saved but may not appear in the feed until manually reviewed.
+            </p>
+          </div>
+        )}
         <div className="w-full bg-white/5 rounded-xl p-4 text-left space-y-2">
-          <p className="text-sm">
-            <span className="text-white/50">Category: </span>
-            <Badge
-              variant="secondary"
-              className={`${colorClass} text-white border-0 text-xs`}
-            >
-              {result.bucket_name}
-            </Badge>
-          </p>
-          <p className="text-sm">
-            <span className="text-white/50">Duration: </span>
-            {(result.duration_ms / 1000).toFixed(1)}s
-          </p>
+          {result.bucket_name && (
+            <p className="text-sm">
+              <span className="text-white/50">Category: </span>
+              <Badge
+                variant="secondary"
+                className={`${colorClass} text-white border-0 text-xs capitalize`}
+              >
+                {result.bucket_name}
+              </Badge>
+            </p>
+          )}
+          {result.duration_ms && (
+            <p className="text-sm">
+              <span className="text-white/50">Duration: </span>
+              {(result.duration_ms / 1000).toFixed(1)}s
+            </p>
+          )}
           <p className="text-sm text-white/50 break-all">
             ID: {result.video_id}
           </p>
