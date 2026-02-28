@@ -1,5 +1,5 @@
 from PIL import Image
-from backend.src.detection.detect_utils import clean_input
+from src.detection.detect_utils import clean_input
 
 def classify_video_genre(genre_clf, video_path, top_k:int = 5):
     if not video_path:

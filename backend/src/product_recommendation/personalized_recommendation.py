@@ -1,15 +1,15 @@
 from fastapi import HTTPException
 import pandas as pd
 import time
-from backend.src.database.db_utils import download_all_videos_metadata, download_all_products_metadata,  download_user_interactions
+from src.database.db_utils import download_all_videos_metadata, download_all_products_metadata,  download_user_interactions
 import numpy as np
 import logging
 logger = logging.getLogger(__name__)
 
 # caching product recommendations
-_recommendation_cache = {"data": None, "timestamp": 0, "ttl": 300}
+_recommendation_cache = {"data": None, "timestamp": 0, "ttl": 300, "n_recommended": 20}
 
-def product_recommendation_service(n_recommended: int = 20):
+def product_recommendation_service(n_recommended: int = 20) -> pd.DataFrame:
     """
     Recommendation service that returns top 20 products in preferred categories
 
@@ -23,6 +23,12 @@ def product_recommendation_service(n_recommended: int = 20):
 
         # NOTE: here "bucket" means category / genre
         current_time = time.time()
+
+        # step 0 if n_recommended products requested is different from last time or the refresh button is clicked then clear the cache.
+        # TODO: add refresh logic
+        if n_recommended != _recommendation_cache["n_recommended"]:
+            _recommendation_cache["data"] = None
+            
 
         # Step 1 check cache (5 minute TTL)
 
@@ -51,7 +57,7 @@ def product_recommendation_service(n_recommended: int = 20):
 
         # Set indices on the dataframes for faster accessing modifying dataframe itself.
         user_interactions_df = user_interactions_df.set_index("video_id")
-        videos_df = videos_df.setIndex("video_id")
+        videos_df = videos_df.set_index("video_id")
 
         # left join dataframes keeping video info for the ones the user watched
         interactions_with_buckets = user_interactions_df.join(videos_df)
@@ -62,7 +68,7 @@ def product_recommendation_service(n_recommended: int = 20):
 
         if interactions_with_buckets.empty:
             # just recommend random products since no proper interaction data
-            result = products_df.saple(min(n_recommended, len(products_df))).to_dict(orient = "records")
+            result = products_df.sample(min(n_recommended, len(products_df))).to_dict(orient = "records")
 
             _recommendation_cache["data"] = result
             _recommendation_cache["timestamp"] = current_time
@@ -74,7 +80,8 @@ def product_recommendation_service(n_recommended: int = 20):
         buckets_watched = interactions_with_buckets["bucket_num"].values.astype(np.int32)
         watch_times = interactions_with_buckets["watch_time_ms"].values.astype(np.float32)
 
-        max_bucket_id= int(max(buckets_watched.max(), products_df["bucket_num"].max())) + 1
+        products_bucket_num_max = products_df["bucket_num"].astype(np.int32).max()
+        max_bucket_id= int(max(buckets_watched.max(), products_bucket_num_max)) + 1
 
         bucket_watch_frequency_array = np.bincount(buckets_watched, weights = watch_times, minlength= max_bucket_id)
 
@@ -92,9 +99,8 @@ def product_recommendation_service(n_recommended: int = 20):
 
         preferred_buckets = np.where(bucket_watch_frequency_array > 0)[0]
 
-        
-
-        product_buckets = products_df["bucket"].values.astype(np.int32)
+    
+        product_buckets = products_df["bucket_num"].values.astype(np.int32)
         preferred_product_buckets = np.isin(product_buckets, preferred_buckets)
 
         # only recommending relevant products in subset of dataframe that are in buckets user interacted 
@@ -113,7 +119,7 @@ def product_recommendation_service(n_recommended: int = 20):
         # normalizing because need a normalized value between 0 and 1 for np random choice sampling
         bucket_weights = bucket_weights.astype(np.float32)
         bucket_weights = bucket_weights / np.sum(bucket_weights)
-
+        print(bucket_weights)
         # 80-20 split preferred and random
         n_preferred = int(n_recommended * 0.8)
 
@@ -158,10 +164,11 @@ def product_recommendation_service(n_recommended: int = 20):
         result_df = result_df.sample(frac = 1).reset_index(drop= True)
 
         # cache result and return 
-
         _recommendation_cache["data"] = result_df.to_dict(orient = "records")
         _recommendation_cache["timestamp"] = current_time
-
+        _recommendation_cache["n_recommended"] = n_recommended
+        
+        result = _recommendation_cache["data"]
         return result
     except Exception as e:
         logger.error(e)

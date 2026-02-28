@@ -3,7 +3,7 @@ fastapi
 uvicorn
 pydantic
 python-multipart
-
+debugpy
 # ML
 transformers>=4.35
 torch

@@ -6,12 +6,18 @@ from transformers import pipeline
 from PIL import Image
 import uuid
 import easyocr
+import os
+import glob
+import pandas as pd
+import sys
+sys.path.insert(0, (os.path.dirname(__file__)))
 
-from backend.src.backend_base_services import upload_video_service, upload_product_service, \
+from src.backend_base_services import upload_video_service, upload_product_service, \
     get_vid_by_id_service, get_vid_metadata_by_id_service, get_vids_by_genre_service, \
     get_product_by_id_service, get_product_metadata_by_id_service, get_products_by_category_service, \
-    update_user_interaction_service, get_feed_service, product_recommendation_service
+    update_user_interaction_service, get_feed_service
 
+from src.product_recommendation.personalized_recommendation import product_recommendation_service
 app = FastAPI()
 
 class VideoUploadRequest(BaseModel):
@@ -184,12 +190,60 @@ def get_feed_videos(vids_num: int = 5):
 
 # Recommendation portion; return top 20 products (its metadata) after calling recommendation system and product selections
 @app.get("/shop/products")
-def get_shop_products():
+def get_shop_products(num_products: int = 20):
     try:
-        return_payload = product_recommendation_service()
+        return_payload = product_recommendation_service(num_products)
         return return_payload
     except Exception as e:
         raise HTTPException(status_code = 500, detail = f"get_shop_products failed: {str(e)}")
 
 
 # TODO: add refresh button for shop and videos 
+
+# if __name__ == "__main__":
+    # API tester
+    # find out what are the video ids and categories
+
+    # files = []
+    # video_dir = os.path.abspath("backend/src/data/video_parquet")
+    # if os.path.isdir(video_dir):
+    #     files = glob.glob(os.path.join(video_dir, "*.parquet"))
+    # else:
+    #     files = [video_dir]
+    # ids = []
+    # for f in files:
+    #     try:
+    #         df = pd.read_parquet(f)
+    #     except Exception as e:
+    #         print(f"Skipping {f}: {e}")
+    #         continue
+    #     print(df.iloc[0])
+    
+    # products_dir = os.path.abspath("backend/src/data/product_parquet")
+    # if os.path.isdir(products_dir):
+    #     files = glob.glob(os.path.join(products_dir, "*.parquet"))
+    # else:
+    #     files = [products_dir]
+    # ids = []
+    # for f in files:
+    #     try:
+    #         df = pd.read_parquet(f)
+    #     except Exception as e:
+    #         print(f"Skipping {f}: {e}")
+    #         continue
+    #     print(df.iloc[0])
+
+    # update_video_interactions(video_id = "cy0w3vtibYU", watch_time_ms= 5000)
+    # update_video_interactions(video_id= "VjZtCU61MbU", watch_time_ms= 10000)
+    # update_video_interactions(video_id = "v_CuttingInKitchen_g09_c01", watch_time_ms = 8000)
+    # update_video_interactions(video_id="dDdU130NVw0", watch_time_ms= 5000)
+
+
+    
+
+
+
+    
+    
+
+

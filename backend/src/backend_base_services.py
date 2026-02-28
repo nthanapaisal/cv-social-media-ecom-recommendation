@@ -1,10 +1,10 @@
 import os
 from fastapi import HTTPException
 
-from backend.src.database.db_utils import upload_video_database, upload_product_database, update_parquet_table, \
+from src.database.db_utils import upload_video_database, upload_product_database, update_parquet_table, \
     download_video, download_video_metadata, download_product, download_product_metadata, download_all_videos_metadata, download_user_interactions
-from backend.src.detection_classification.detect_classify import load_json, classify_video_genre, get_video_duration_ms_from_path
-
+from src.detection.detect_modules import classify_video_genre, ocr_read_frames, zero_shot_classification, capping_video
+from src.detection.detect_utils import load_json, get_video_duration_ms_from_path, get_base_frames, weighted_fusion
 import logging
 logger = logging.getLogger(__name__)
 
@@ -132,11 +132,10 @@ def get_product_metadata_by_id_service(product_id):
 def get_products_by_category_service(category):
     return download_products_genre(category)
 
-def update_user_interaction_service(video_id: int, watch_time_ms:int, user_biography: dict):
+def update_user_interaction_service(video_id: int, watch_time_ms:int):
     user_interaction = {
         "video_id": video_id,
         "watch_time_ms": watch_time_ms,
-        "user_biography": user_biography,
     }
     out_path = update_parquet_table(user_interaction , "user")
     return {**user_interaction, "parquet_path": out_path}

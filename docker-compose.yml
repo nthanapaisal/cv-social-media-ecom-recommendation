@@ -2,8 +2,11 @@ services:
   cv-social-media-ecom-recommendation:
     build: .
     container_name: cv-ecomm-rec-api
+    environment:
+      - PYTHONPATH=/app/backend
     ports:
       - "127.0.0.1:8000:8000"
+      - "127.0.0.1:5678:5678"
     volumes:
       - .:/app
-    command: uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload
+    command: python -Xfrozen_modules=off -m debugpy --listen 0.0.0.0:5678 -m uvicorn main:app --host 0.0.0.0 --port 8000 --reload
