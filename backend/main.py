@@ -7,11 +7,13 @@ from PIL import Image
 import uuid
 import easyocr
 
+
 from backend.src.backend_base_services import upload_video_service, upload_product_service, \
     get_vid_by_id_service, get_vid_metadata_by_id_service, get_vids_by_genre_service, \
     get_product_by_id_service, get_product_metadata_by_id_service, get_products_by_category_service, \
     update_user_interaction_service, get_feed_service
 
+from backend.src.product_recommendation.personalized_recommendation import product_recommendation_service, _products_recommendation_cache
 app = FastAPI()
 
 class VideoUploadRequest(BaseModel):
@@ -173,9 +175,13 @@ async def update_video_interactions(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"update_video_interactions failed: {str(e)}")
 
-# return 10 video paths randomly selected from DB
+# return 10 video paths randomly selected from DB.
+
 @app.get("/feed/videos")
-def get_feed_videos(vids_num: int = 5):
+def get_feed_videos(vids_num: int = 10):
+    """
+    No cache, everytime you call this API it will recommend new videos.
+    """
     try:
         return_payload = get_feed_service(vids_num)
         return return_payload
@@ -184,5 +190,27 @@ def get_feed_videos(vids_num: int = 5):
 
 # Recommendation portion; return top 20 products (its metadata) after calling recommendation system and product selections
 @app.get("/shop/products")
-def get_shop_products():
-    pass
+def get_shop_products(num_products: int = 20):
+    """
+    Cached. if you call this API multiple times with same num_products for 5 minutes it will return the same products. 
+
+    If you want different products recommended:
+    a) call the refresh_shop API below.
+    b) call this API with a different num_products.
+    c) wait 5 minutes (Configurable inside product_recommendation_service function).
+    """
+    try:
+        return_payload = product_recommendation_service(num_products)
+        return return_payload
+    except Exception as e:
+        raise HTTPException(status_code = 500, detail = f"get_shop_products failed: {str(e)}")
+
+
+# for refresh button that clears the products cache
+# in frontend when refresh button is pressed we can call this API then call the get_shop_products API above 
+@app.post("/shop/refresh")
+def refresh_shop():
+    try:
+        _products_recommendation_cache["data"] = None
+    except Exception as e:
+        raise HTTPException(status_code = 500, detail = f"refresh shop failed {str(e)}")
