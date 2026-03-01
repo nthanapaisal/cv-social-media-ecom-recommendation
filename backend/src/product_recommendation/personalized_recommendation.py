@@ -8,7 +8,7 @@ import numpy as np
 # caching product recommendations
 _products_recommendation_cache = {"data": None, "timestamp": 0, "ttl": 300, "n_recommended": 20}
 
-def product_recommendation_service(n_recommended: int = 20) -> pd.DataFrame:
+def product_recommendation(n_recommended: int = 20) -> pd.DataFrame:
     """
     Recommendation service that returns products in preferred categories with added randomness
 
@@ -165,7 +165,7 @@ def product_recommendation_service(n_recommended: int = 20) -> pd.DataFrame:
     except Exception as e:
         raise HTTPException(status_code = 500, detail = f"product recommendation failed: {str(e)}")
 
-def video_recommendation_service(n_recommended: int = 10) -> list[dict]:
+def video_recommendation(n_recommended: int = 10) -> list[dict]:
     """
     70/30 mix of weighted preferred videos and random exploration.
     Keeps track of videos already recommended (assumes all were watched or user doesnt want to watch'em and recommends new ones)
