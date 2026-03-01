@@ -143,5 +143,3 @@ def get_feed_service(n_recommended = 10):
     """ Wrapper to get recommended video metadata dataframe and return as serialized list of dict"""
     recommended_videos = video_recommendation_service(n_recommended)
     return {"videos": recommended_videos}
-
-
