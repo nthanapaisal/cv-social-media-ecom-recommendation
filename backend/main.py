@@ -6,18 +6,14 @@ from transformers import pipeline
 from PIL import Image
 import uuid
 import easyocr
-import os
-import glob
-import pandas as pd
-import sys
-sys.path.insert(0, (os.path.dirname(__file__)))
 
-from src.backend_base_services import upload_video_service, upload_product_service, \
+
+from backend.src.backend_base_services import upload_video_service, upload_product_service, \
     get_vid_by_id_service, get_vid_metadata_by_id_service, get_vids_by_genre_service, \
     get_product_by_id_service, get_product_metadata_by_id_service, get_products_by_category_service, \
     update_user_interaction_service, get_feed_service
 
-from src.product_recommendation.personalized_recommendation import product_recommendation_service, _products_recommendation_cache
+from backend.src.product_recommendation.personalized_recommendation import product_recommendation_service, _products_recommendation_cache
 app = FastAPI()
 
 class VideoUploadRequest(BaseModel):

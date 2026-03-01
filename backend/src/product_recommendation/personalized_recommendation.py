@@ -1,7 +1,7 @@
 from fastapi import HTTPException
 import pandas as pd
 import time
-from src.database.db_utils import download_all_videos_metadata, download_all_products_metadata,  download_user_interactions
+from backend.src.database.db_utils import download_all_videos_metadata, download_all_products_metadata,  download_user_interactions
 import numpy as np
 
 

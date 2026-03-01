@@ -1,16 +1,15 @@
 import os
 from fastapi import HTTPException
-from src.database.db_utils import upload_video_database, upload_product_database, update_parquet_table, \
+from backend.src.database.db_utils import upload_video_database, upload_product_database, update_parquet_table, \
     download_video, download_video_metadata, download_product, download_product_metadata, download_all_videos_metadata, download_user_interactions
-from src.detection.detect_modules import classify_video_genre, ocr_read_frames, zero_shot_classification, capping_video
-from src.detection.detect_utils import load_json, get_video_duration_ms_from_path, get_base_frames, weighted_fusion
+from backend.src.detection.detect_modules import classify_video_genre, ocr_read_frames, zero_shot_classification, capping_video
+from backend.src.detection.detect_utils import load_json, get_video_duration_ms_from_path, get_base_frames, weighted_fusion
 import logging
 logger = logging.getLogger(__name__)
-from src.product_recommendation.personalized_recommendation import video_recommendation_service
+from backend.src.product_recommendation.personalized_recommendation import video_recommendation_service
 
 MAPPED_LABELS = load_json("./backend/configs/mapped_labels_buckets.json")
 BUCKETS = load_json("./backend/configs/buckets.json")
-
 
 
 def upload_video_service(
