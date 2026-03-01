@@ -17,7 +17,7 @@ from src.backend_base_services import upload_video_service, upload_product_servi
     get_product_by_id_service, get_product_metadata_by_id_service, get_products_by_category_service, \
     update_user_interaction_service, get_feed_service
 
-from src.product_recommendation.personalized_recommendation import product_recommendation_service
+from src.product_recommendation.personalized_recommendation import product_recommendation_service, _products_recommendation_cache
 app = FastAPI()
 
 class VideoUploadRequest(BaseModel):
@@ -179,9 +179,13 @@ async def update_video_interactions(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"update_video_interactions failed: {str(e)}")
 
-# return 10 video paths randomly selected from DB
+# return 10 video paths randomly selected from DB.
+
 @app.get("/feed/videos")
-def get_feed_videos(vids_num: int = 5):
+def get_feed_videos(vids_num: int = 10):
+    """
+    No cache, everytime you call this API it will recommend new videos.
+    """
     try:
         return_payload = get_feed_service(vids_num)
         return return_payload
@@ -191,6 +195,14 @@ def get_feed_videos(vids_num: int = 5):
 # Recommendation portion; return top 20 products (its metadata) after calling recommendation system and product selections
 @app.get("/shop/products")
 def get_shop_products(num_products: int = 20):
+    """
+    Cached. if you call this API multiple times with same num_products for 5 minutes it will return the same products. 
+
+    If you want different products recommended:
+    a) call the refresh_shop API below.
+    b) call this API with a different num_products.
+    c) wait 5 minutes (Configurable inside product_recommendation_service function).
+    """
     try:
         return_payload = product_recommendation_service(num_products)
         return return_payload
@@ -198,46 +210,18 @@ def get_shop_products(num_products: int = 20):
         raise HTTPException(status_code = 500, detail = f"get_shop_products failed: {str(e)}")
 
 
-# TODO: add refresh button for shop and videos 
+# for refresh button that clears the products cache
+# in frontend when refresh button is pressed we can call this API then call the get_shop_products API above 
+@app.post("/shop/refresh")
+def refresh_shop():
+    try:
+        _products_recommendation_cache["data"] = None
+    except Exception as e:
+        raise HTTPException(status_code = 500, detail = f"refresh shop failed {str(e)}")
 
-# if __name__ == "__main__":
-    # API tester
-    # find out what are the video ids and categories
 
-    # files = []
-    # video_dir = os.path.abspath("backend/src/data/video_parquet")
-    # if os.path.isdir(video_dir):
-    #     files = glob.glob(os.path.join(video_dir, "*.parquet"))
-    # else:
-    #     files = [video_dir]
-    # ids = []
-    # for f in files:
-    #     try:
-    #         df = pd.read_parquet(f)
-    #     except Exception as e:
-    #         print(f"Skipping {f}: {e}")
-    #         continue
-    #     print(df.iloc[0])
-    
-    # products_dir = os.path.abspath("backend/src/data/product_parquet")
-    # if os.path.isdir(products_dir):
-    #     files = glob.glob(os.path.join(products_dir, "*.parquet"))
-    # else:
-    #     files = [products_dir]
-    # ids = []
-    # for f in files:
-    #     try:
-    #         df = pd.read_parquet(f)
-    #     except Exception as e:
-    #         print(f"Skipping {f}: {e}")
-    #         continue
-    #     print(df.iloc[0])
 
-    # update_video_interactions(video_id = "cy0w3vtibYU", watch_time_ms= 5000)
-    # update_video_interactions(video_id= "VjZtCU61MbU", watch_time_ms= 10000)
-    # update_video_interactions(video_id = "v_CuttingInKitchen_g09_c01", watch_time_ms = 8000)
-    # update_video_interactions(video_id="dDdU130NVw0", watch_time_ms= 5000)
-
+                
 
     
 
