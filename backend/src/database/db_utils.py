@@ -115,9 +115,3 @@ def download_all_products_metadata()->pd.DataFrame:
     if df.empty:
         raise FileNotFoundError(f"Product metadata not found")
     return df
-
-
-
-
-
-

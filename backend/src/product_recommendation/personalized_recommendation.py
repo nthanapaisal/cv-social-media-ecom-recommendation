@@ -29,7 +29,6 @@ def product_recommendation_service(n_recommended: int = 20) -> pd.DataFrame:
         # TODO: add refresh logic
         if n_recommended != _products_recommendation_cache["n_recommended"]:
             _products_recommendation_cache["data"] = None
-            
 
         # Step 1 check cache (5 minute TTL)
 
@@ -37,8 +36,6 @@ def product_recommendation_service(n_recommended: int = 20) -> pd.DataFrame:
             if current_time - _products_recommendation_cache["timestamp"] < _products_recommendation_cache["ttl"]:
                 return _products_recommendation_cache["data"]
         
-        
-
         # Step 2 get the parquet files and make dataframes out of:
         # 1) user_interactions
         # 2) video metadata
@@ -76,7 +73,6 @@ def product_recommendation_service(n_recommended: int = 20) -> pd.DataFrame:
 
             return result
     
-        
         # step 4 get the frequency of interaction for each bucket weighted by watch time 
         buckets_watched = interactions_with_buckets["bucket_num"].values.astype(np.int32)
         watch_times = interactions_with_buckets["watch_time_ms"].values.astype(np.float32)
@@ -97,10 +93,8 @@ def product_recommendation_service(n_recommended: int = 20) -> pd.DataFrame:
             return result
         
         # step 6 sample from available products dataframe randomly picking rows with higher likelihood of choosing rows in higher weight buckets.
-
         preferred_buckets = np.where(bucket_watch_frequency_array > 0)[0]
 
-    
         product_buckets = products_df["bucket_num"].values.astype(np.int32)
         preferred_product_buckets = np.isin(product_buckets, preferred_buckets)
 
@@ -135,7 +129,6 @@ def product_recommendation_service(n_recommended: int = 20) -> pd.DataFrame:
         # dataframe of recommended products based on user video preferences 
         preferred_sampled = preferred_products_df.iloc[preferred_indices]
 
-
         picked_ids = preferred_sampled["product_id"].values
 
         # EXCLUSION MASK - get product ids series in preferred_products dataframe that have not been picked
@@ -143,9 +136,7 @@ def product_recommendation_service(n_recommended: int = 20) -> pd.DataFrame:
         # reset index not required since we will just use pandas sample later (no fancy indexing operations)
         exploratory_products_df = products_df[remaining_products].reset_index(drop = True)
 
-
         # step 7 randomly sample from all products and mix in some randomness as well (EXPLORATION)
-        
         n_explore = n_recommended - n_preferred_capped
 
         n_explore_capped = min(n_explore, len(exploratory_products_df))
@@ -174,7 +165,6 @@ def product_recommendation_service(n_recommended: int = 20) -> pd.DataFrame:
     except Exception as e:
         raise HTTPException(status_code = 500, detail = f"product recommendation failed: {str(e)}")
 
-
 def video_recommendation_service(n_recommended: int = 10) -> list[dict]:
     """
     70/30 mix of weighted preferred videos and random exploration.
@@ -189,12 +179,10 @@ def video_recommendation_service(n_recommended: int = 10) -> list[dict]:
     if len(videos_df) <= n_recommended:
         return videos_df.to_dict(orient = "records")
     
-
     # If fewer than n videos exist in the database , return all
     if len(videos_df) <= n_recommended:
         return videos_df.to_dict(orient="records")
     
-
     user_interactions_df = download_user_interactions()
 
     try:
@@ -271,7 +259,6 @@ def video_recommendation_service(n_recommended: int = 10) -> list[dict]:
         if n_explore_capped > 0:
             explore_sampled = exploratory_vids_df.sample(n = n_explore_capped, replace = False)
         
-
         # Step 8 combine and shuffle and return 
 
         result_df = pd.concat([preferred_sampled, explore_sampled], ignore_index = True)
@@ -282,15 +269,3 @@ def video_recommendation_service(n_recommended: int = 10) -> list[dict]:
 
     except Exception as e:
         raise HTTPException(status_code = 500, detail = f"video recommendation failed: {str(e)}")
-
-
-    
-
-
-
-
-
-
-
-
-
