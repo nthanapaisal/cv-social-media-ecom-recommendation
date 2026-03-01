@@ -6,3 +6,5 @@ test
 .env
 venv/
 data/
+product_images
+.vscode/
