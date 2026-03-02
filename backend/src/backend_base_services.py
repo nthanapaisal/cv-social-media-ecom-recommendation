@@ -6,7 +6,7 @@ from backend.src.detection.detect_modules import classify_video_genre, ocr_read_
 from backend.src.detection.detect_utils import load_json, get_video_duration_ms_from_path, get_base_frames, weighted_fusion
 import logging
 logger = logging.getLogger(__name__)
-from backend.src.product_recommendation.personalized_recommendation import video_recommendation_service
+from backend.src.product_recommendation.personalized_recommendation import video_recommendation, product_recommendation
 
 MAPPED_LABELS = load_json("./backend/configs/mapped_labels_buckets.json")
 BUCKETS = load_json("./backend/configs/buckets.json")
@@ -99,8 +99,8 @@ def upload_product_service(
         "title": request_payload.title,
         "product_details": request_payload.description,
         "bucket_num": bucket_num,
-        "target_demographic": request_payload.target_demographic,
-        "bucket_name": request_payload.category.value
+        "bucket_name": request_payload.category.value,
+        "price": request_payload.price,
     }
 
     try:
@@ -141,5 +141,10 @@ def update_user_interaction_service(video_id: int, watch_time_ms:int):
 
 def get_feed_service(n_recommended = 10):
     """ Wrapper to get recommended video metadata dataframe and return as serialized list of dict"""
-    recommended_videos = video_recommendation_service(n_recommended)
+    recommended_videos = video_recommendation(n_recommended)
     return {"videos": recommended_videos}
+
+def get_shop_service(n_recommended = 10):
+    """ Wrapper to get recommended video metadata dataframe and return as serialized list of dict"""
+    recommended_products = product_recommendation(n_recommended)
+    return {"products": recommended_products}
