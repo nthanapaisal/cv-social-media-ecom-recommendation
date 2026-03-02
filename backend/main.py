@@ -11,9 +11,9 @@ import easyocr
 from backend.src.backend_base_services import upload_video_service, upload_product_service, \
     get_vid_by_id_service, get_vid_metadata_by_id_service, get_vids_by_genre_service, \
     get_product_by_id_service, get_product_metadata_by_id_service, get_products_by_category_service, \
-    update_user_interaction_service, get_feed_service
+    update_user_interaction_service, get_feed_service, get_shop_service
+from backend.src.product_recommendation.personalized_recommendation import _products_recommendation_cache
 
-from backend.src.product_recommendation.personalized_recommendation import product_recommendation_service, _products_recommendation_cache
 app = FastAPI()
 
 class VideoUploadRequest(BaseModel):
@@ -42,15 +42,17 @@ class ProductUploadRequest(BaseModel):
     title: str
     description: str
     category: ProductCategory
+    price: float
 
     @classmethod
     def as_form(
         cls,
         title: str = Form(...),
         description: str = Form(...),
-        category: ProductCategory = Form(...)
+        category: ProductCategory = Form(...),
+        price: float = Form(...)
     ):
-        return cls(title=title, description=description, category=category)
+        return cls(title=title, description=description, category=category, price=price)
 
 @app.on_event("startup")
 def startup():
@@ -197,10 +199,10 @@ def get_shop_products(num_products: int = 20):
     If you want different products recommended:
     a) call the refresh_shop API below.
     b) call this API with a different num_products.
-    c) wait 5 minutes (Configurable inside product_recommendation_service function).
+    c) wait 5 minutes (Configurable inside get_shop_service function).
     """
     try:
-        return_payload = product_recommendation_service(num_products)
+        return_payload = get_shop_service(num_products)
         return return_payload
     except Exception as e:
         raise HTTPException(status_code = 500, detail = f"get_shop_products failed: {str(e)}")
@@ -212,5 +214,7 @@ def get_shop_products(num_products: int = 20):
 def refresh_shop():
     try:
         _products_recommendation_cache["data"] = None
+        _products_recommendation_cache["timestamp"] = 0
+        return {"status": "completed"}
     except Exception as e:
         raise HTTPException(status_code = 500, detail = f"refresh shop failed {str(e)}")
