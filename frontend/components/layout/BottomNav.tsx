@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useSyncExternalStore } from "react";
 import { motion } from "framer-motion";
 import { Play, ShoppingBag, PlusCircle, ShoppingCart } from "lucide-react";
 import { useAppStore } from "@/store/app-store";
@@ -16,6 +17,11 @@ const tabs = [
 export function BottomNav() {
   const pathname = usePathname();
   const cartCount = useAppStore((s) => s.cartCount());
+  const mounted = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false
+  );
 
   const activeIndex = tabs.findIndex(
     (tab) => pathname === tab.href || pathname.startsWith(tab.href + "/")
@@ -37,7 +43,7 @@ export function BottomNav() {
             pathname === tab.href ||
             pathname.startsWith(tab.href + "/");
           const Icon = tab.icon;
-          const showBadge = tab.href === "/cart" && cartCount > 0;
+          const showBadge = mounted && tab.href === "/cart" && cartCount > 0;
           return (
             <Link
               key={tab.href}

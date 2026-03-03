@@ -4,8 +4,6 @@ import { useCallback, useEffect, useRef } from "react";
 import { logInteraction } from "@/lib/api-client";
 import { useAppStore } from "@/store/app-store";
 
-const REPORT_INTERVAL_MS = 3000;
-
 export function useInteractionTracker(
   videoId: string | null,
   bucketName: string | null,
@@ -13,13 +11,13 @@ export function useInteractionTracker(
   isPlaying?: boolean
 ) {
   const startTimeRef = useRef<number | null>(null);
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const addWatchedBucket = useAppStore((s) => s.addWatchedBucket);
 
   const report = useCallback(async () => {
     if (!videoId || !startTimeRef.current) return;
     const watchTimeMs = Date.now() - startTimeRef.current;
     if (watchTimeMs < 500) return;
+    startTimeRef.current = null;
     try {
       await logInteraction(videoId, watchTimeMs);
     } catch {
@@ -27,43 +25,27 @@ export function useInteractionTracker(
     }
   }, [videoId]);
 
+  // Start the clock when video becomes visible; report total watch time when scrolled away
   useEffect(() => {
     if (isVisible && videoId && isPlaying !== false) {
       if (!startTimeRef.current) {
         startTimeRef.current = Date.now();
       }
-
       if (bucketName) {
         addWatchedBucket(bucketName);
       }
-
-      if (!intervalRef.current) {
-        intervalRef.current = setInterval(report, REPORT_INTERVAL_MS);
-      }
-
       return () => {
         report();
-        if (intervalRef.current) clearInterval(intervalRef.current);
-        intervalRef.current = null;
-        startTimeRef.current = null;
       };
     } else {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-        intervalRef.current = null;
-      }
-      if (startTimeRef.current) {
-        report();
-        startTimeRef.current = null;
-      }
+      report();
     }
   }, [isVisible, videoId, bucketName, isPlaying, report, addWatchedBucket]);
 
+  // Also flush on tab/app backgrounding
   useEffect(() => {
     const handleVisibilityChange = () => {
-      if (document.hidden && startTimeRef.current) {
-        report();
-      }
+      if (document.hidden) report();
     };
     document.addEventListener("visibilitychange", handleVisibilityChange);
     return () =>

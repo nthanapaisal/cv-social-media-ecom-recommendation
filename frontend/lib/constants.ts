@@ -1,8 +1,11 @@
 export const API_BASE = "/backend";
 
+export const DIRECT_API_BASE =
+  process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+
 export const VIDEO_EXTENSIONS = [".mp4", ".mov", ".mkv", ".webm", ".avi"];
 
-export const FEED_PAGE_SIZE = 5;
+export const FEED_PAGE_SIZE = 10;
 
 export const BUCKET_LABELS: Record<string, string> = {
   "01": "Fashion",

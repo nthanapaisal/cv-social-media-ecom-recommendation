@@ -14,6 +14,7 @@ import {
   ShoppingBag,
   ArrowRight,
 } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { toast } from "sonner";
 
@@ -90,11 +91,12 @@ export default function CartPage() {
                     href={`/shop/${item.product.product_id}`}
                     className="shrink-0"
                   >
-                    <div className="w-20 h-20 md:w-24 md:h-24 rounded-lg overflow-hidden bg-white/5">
-                      <img
+                    <div className="relative w-20 h-20 md:w-24 md:h-24 rounded-lg overflow-hidden bg-white/5">
+                      <Image
                         src={getProductImageUrl(item.product.product_id)}
                         alt={item.product.title}
-                        className="w-full h-full object-cover"
+                        fill
+                        className="object-cover"
                       />
                     </div>
                   </Link>
@@ -109,12 +111,19 @@ export default function CartPage() {
                           {item.product.title}
                         </p>
                       </Link>
-                      <Badge
-                        variant="secondary"
-                        className={`${colorClass} text-white border-0 text-[10px] mt-1.5 capitalize`}
-                      >
-                        {item.product.bucket_name}
-                      </Badge>
+                      <div className="flex items-center gap-2 mt-1.5">
+                        <Badge
+                          variant="secondary"
+                          className={`${colorClass} text-white border-0 text-[10px] capitalize`}
+                        >
+                          {item.product.bucket_name}
+                        </Badge>
+                        {item.product.price != null && (
+                          <span className="text-xs font-semibold text-white/70">
+                            ${item.product.price.toFixed(2)}
+                          </span>
+                        )}
+                      </div>
                     </div>
 
                     <div className="flex items-center justify-between mt-2">
@@ -162,6 +171,12 @@ export default function CartPage() {
           </div>
 
           <div className="flex flex-col gap-3 pt-2">
+            <div className="flex items-center justify-between px-1">
+              <span className="text-sm text-white/60">Total</span>
+              <span className="text-lg font-bold">
+                ${cart.reduce((sum, item) => sum + (item.product.price ?? 0) * item.quantity, 0).toFixed(2)}
+              </span>
+            </div>
             <Button size="lg" className="w-full" disabled>
               Checkout
               <ArrowRight className="w-4 h-4 ml-2" />

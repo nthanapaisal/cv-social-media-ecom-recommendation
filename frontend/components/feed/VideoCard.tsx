@@ -17,7 +17,7 @@ export function VideoCard({ video, onVisible }: VideoCardProps) {
   const [isVisible, setIsVisible] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [captionExpanded, setCaptionExpanded] = useState(false);
-  const caption = video.caption?.trim() || "";
+  const caption = (video.caption ?? "").trim();
 
   useEffect(() => {
     const el = containerRef.current;

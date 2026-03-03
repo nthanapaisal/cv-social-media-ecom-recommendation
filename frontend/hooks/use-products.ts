@@ -10,7 +10,7 @@ export function useProducts(category?: string | null) {
 
   const query = useQuery({
     queryKey: ["shop-products"],
-    queryFn: fetchShopProducts,
+    queryFn: () => fetchShopProducts(),
     staleTime: 60_000,
     retry: 1,
   });

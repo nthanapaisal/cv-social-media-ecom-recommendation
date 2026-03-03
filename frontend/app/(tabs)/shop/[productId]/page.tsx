@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CATEGORY_COLORS } from "@/lib/constants";
 import { ArrowLeft, ShoppingBag, Share2, Check } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { useProducts } from "@/hooks/use-products";
 import { useAppStore } from "@/store/app-store";
@@ -95,10 +96,11 @@ export default function ProductDetailPage({
 
       <div className="max-w-5xl mx-auto md:flex md:gap-8 md:p-6 lg:p-8">
         <div className="relative aspect-square bg-white/5 md:w-1/2 md:max-w-md md:rounded-2xl md:overflow-hidden md:shrink-0 md:self-start">
-          <img
+          <Image
             src={getProductImageUrl(product.product_id)}
             alt={product.title}
-            className="w-full h-full object-cover"
+            fill
+            className="object-cover"
           />
         </div>
 
@@ -108,12 +110,19 @@ export default function ProductDetailPage({
               <h1 className="text-xl md:text-2xl font-semibold leading-tight">
                 {product.title}
               </h1>
-              <Badge
-                variant="secondary"
-                className={`${colorClass} text-white border-0 text-xs mt-2 capitalize`}
-              >
-                {product.bucket_name}
-              </Badge>
+              <div className="flex items-center gap-3 mt-2">
+                <Badge
+                  variant="secondary"
+                  className={`${colorClass} text-white border-0 text-xs capitalize`}
+                >
+                  {product.bucket_name}
+                </Badge>
+                {product.price != null && (
+                  <span className="text-lg font-bold text-white/90">
+                    ${product.price.toFixed(2)}
+                  </span>
+                )}
+              </div>
             </div>
             <Button variant="ghost" size="icon" className="shrink-0">
               <Share2 className="w-5 h-5" />
@@ -171,12 +180,12 @@ export default function ProductDetailPage({
                   href={`/shop/${p.product_id}`}
                   className="block group"
                 >
-                  <div className="aspect-square rounded-xl overflow-hidden bg-white/5 border border-white/10">
-                    <img
+                  <div className="relative aspect-square rounded-xl overflow-hidden bg-white/5 border border-white/10">
+                    <Image
                       src={getProductImageUrl(p.product_id)}
                       alt={p.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                      loading="lazy"
+                      fill
+                      className="object-cover group-hover:scale-105 transition-transform duration-300"
                     />
                   </div>
                   <p className="text-xs text-white/70 mt-1.5 line-clamp-2">

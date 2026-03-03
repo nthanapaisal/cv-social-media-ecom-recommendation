@@ -5,6 +5,14 @@ from backend.src.database.db_utils import download_all_videos_metadata, download
 import numpy as np
 
 
+def _df_to_records(df: pd.DataFrame) -> list[dict]:
+    """Convert DataFrame to records replacing all NA/NaN variants with None for JSON safety."""
+    return [
+        {k: (None if pd.isna(v) else v) for k, v in rec.items()}
+        for rec in df.to_dict(orient="records")
+    ]
+
+
 # caching product recommendations
 _products_recommendation_cache = {"data": None, "timestamp": 0, "ttl": 300, "n_recommended": 20}
 
@@ -66,7 +74,7 @@ def product_recommendation(n_recommended: int = 20) -> pd.DataFrame:
 
         if interactions_with_buckets.empty:
             # just recommend random products since no proper interaction data
-            result = products_df.sample(min(n_recommended, len(products_df))).to_dict(orient = "records")
+            result = _df_to_records(products_df.sample(min(n_recommended, len(products_df))))
 
             _products_recommendation_cache["data"] = result
             _products_recommendation_cache["timestamp"] = current_time
@@ -87,7 +95,7 @@ def product_recommendation(n_recommended: int = 20) -> pd.DataFrame:
 
         if total_watch_time == 0:
             # user hasnt watched any videos so recommend random products
-            result = products_df.sample(min(n_recommended, len(products_df))).to_dict(orient = "records")
+            result = _df_to_records(products_df.sample(min(n_recommended, len(products_df))))
             _products_recommendation_cache["data"] = result
             _products_recommendation_cache["timestamp"] = current_time
             return result
@@ -103,7 +111,7 @@ def product_recommendation(n_recommended: int = 20) -> pd.DataFrame:
 
         if len(preferred_products_df) == 0:
             # edge case where no products in preferred categories
-            result = products_df.sample(min(n_recommended, len(products_df))).to_dict(orient = "records")
+            result = _df_to_records(products_df.sample(min(n_recommended, len(products_df))))
             _products_recommendation_cache["data"] = result
             _products_recommendation_cache["timestamp"] = current_time
             return result
@@ -156,7 +164,7 @@ def product_recommendation(n_recommended: int = 20) -> pd.DataFrame:
         result_df = result_df.sample(frac = 1).reset_index(drop= True)
 
         # cache result and return 
-        _products_recommendation_cache["data"] = result_df.to_dict(orient = "records")
+        _products_recommendation_cache["data"] = _df_to_records(result_df)
         _products_recommendation_cache["timestamp"] = current_time
         _products_recommendation_cache["n_recommended"] = n_recommended
 
@@ -177,18 +185,18 @@ def video_recommendation(n_recommended: int = 10) -> list[dict]:
         raise HTTPException("No video metadata available in database")
     
     if len(videos_df) <= n_recommended:
-        return videos_df.to_dict(orient = "records")
+        return _df_to_records(videos_df)
     
     # If fewer than n videos exist in the database , return all
     if len(videos_df) <= n_recommended:
-        return videos_df.to_dict(orient="records")
+        return _df_to_records(videos_df)
     
     user_interactions_df = download_user_interactions()
 
     try:
         # Step 1: Fallback if user has no interactions yet
         if user_interactions_df.empty:
-            return videos_df.sample(min(n_recommended, len(videos_df))).to_dict(orient="records")
+            return _df_to_records(videos_df.sample(min(n_recommended, len(videos_df))))
         
 
         # step 2: Join interactions with video metadata to get bucket_num (category of videos interacted with)
@@ -198,7 +206,7 @@ def video_recommendation(n_recommended: int = 10) -> list[dict]:
         interactions_with_buckets = ui_df.join(v_df).dropna(subset=["bucket_num"])
 
         if interactions_with_buckets.empty:
-            return videos_df.sample(min(n_recommended, len(videos_df))).to_dict(orient="records")
+            return _df_to_records(videos_df.sample(min(n_recommended, len(videos_df))))
         
         # Step 3: Calculate weights for each bucket based on watch time
         buckets_watched = interactions_with_buckets["bucket_num"].astype(np.int32).values
@@ -216,7 +224,7 @@ def video_recommendation(n_recommended: int = 10) -> list[dict]:
 
         if unwatched_videos_df.empty:
             # edge case: user literally watched every video in the database. So just give them random watched videos
-            return videos_df.sample(min(n_recommended, len(videos_df))).to_dict(orient = "records")
+            return _df_to_records(videos_df.sample(min(n_recommended, len(videos_df))))
         
         # step 5: filtering unwatched videos into preferred categories
         unwatched_buckets = unwatched_videos_df["bucket_num"].astype(np.int32).values
@@ -227,7 +235,7 @@ def video_recommendation(n_recommended: int = 10) -> list[dict]:
 
         if preferred_vids_df.empty:
             # if no videos are preferred... maybe because all videos in categories user prefers are watched, recommend random videos watched or unwatched 
-            return videos_df.sample(min(n_recommended, len(videos_df))).to_dict(orient = "records")
+            return _df_to_records(videos_df.sample(min(n_recommended, len(videos_df))))
         
         # Step 6: 70% preferred videos sampled weighted using bucket interaction frequency.
         n_preferred = int(n_recommended * 0.7)
@@ -265,7 +273,7 @@ def video_recommendation(n_recommended: int = 10) -> list[dict]:
 
         result_df = result_df.sample(frac = 1).reset_index(drop = True)
         
-        return result_df.to_dict(orient = "records")
+        return _df_to_records(result_df)
 
     except Exception as e:
         raise HTTPException(status_code = 500, detail = f"video recommendation failed: {str(e)}")

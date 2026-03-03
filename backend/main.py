@@ -1,5 +1,6 @@
 import io
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Depends
+from fastapi.middleware.cors import CORSMiddleware
 from enum import Enum
 from pydantic import BaseModel
 from transformers import pipeline
@@ -15,6 +16,14 @@ from backend.src.backend_base_services import upload_video_service, upload_produ
 from backend.src.product_recommendation.personalized_recommendation import _products_recommendation_cache
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 class VideoUploadRequest(BaseModel):
     description: str
@@ -89,7 +98,7 @@ def get_bart_mnli():
 def get_caption_model():
     return app.state.caption_model
 
-@app.post("/upload/video/")
+@app.post("/upload/video")
 async def upload_video(
     video: UploadFile = File(...),
     request_payload: VideoUploadRequest = Depends(VideoUploadRequest.as_form),
@@ -118,7 +127,7 @@ async def upload_video(
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.post("/upload/product/")
+@app.post("/upload/product")
 async def upload_product(
     image: UploadFile = File(...),
     request_payload: ProductUploadRequest = Depends(ProductUploadRequest.as_form)
@@ -166,7 +175,7 @@ def get_product_metadata_by_id(product_id: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"get_product_metadata_by_id failed: {str(e)}")
 
-@app.post("/video/interactions/")
+@app.post("/video/interactions")
 async def update_video_interactions(
     video_id: str,
     watch_time_ms: int

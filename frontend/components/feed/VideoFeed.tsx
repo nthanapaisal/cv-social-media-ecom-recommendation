@@ -3,7 +3,6 @@
 import { useCallback, useRef, useEffect } from "react";
 import { useVideoFeed } from "@/hooks/use-video-feed";
 import { VideoCard } from "./VideoCard";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Loader2, VideoOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";

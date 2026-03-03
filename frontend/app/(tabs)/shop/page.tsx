@@ -1,7 +1,7 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { useState, useEffect, Suspense } from "react";
+import { useState, Suspense } from "react";
 import { CategoryFilter } from "@/components/shop/CategoryFilter";
 import { ProductGrid } from "@/components/shop/ProductGrid";
 import { useProducts } from "@/hooks/use-products";
@@ -15,10 +15,6 @@ function ShopContent() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(
     categoryFromUrl
   );
-
-  useEffect(() => {
-    if (categoryFromUrl) setSelectedCategory(categoryFromUrl);
-  }, [categoryFromUrl]);
 
   const { products, isLoading } = useProducts(selectedCategory);
   const watchedBuckets = useAppStore((s) => s.watchedBuckets);

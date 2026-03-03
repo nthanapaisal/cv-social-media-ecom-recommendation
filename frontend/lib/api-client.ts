@@ -1,4 +1,4 @@
-import { API_BASE } from "./constants";
+import { API_BASE, DIRECT_API_BASE } from "./constants";
 import type {
   VideoMetadata,
   ProductMetadata,
@@ -25,7 +25,7 @@ function normalizeShopProductsResponse(data: unknown): ProductMetadata[] {
   return [];
 }
 
-export async function fetchFeed(vidsNum = 5): Promise<VideoMetadata[]> {
+export async function fetchFeed(vidsNum = 10): Promise<VideoMetadata[]> {
   const res = await fetch(`${API_BASE}/feed/videos?vids_num=${vidsNum}`);
   if (!res.ok) throw new Error(`Feed fetch failed: ${res.status}`);
   const data = await res.json();
@@ -79,7 +79,7 @@ export async function uploadVideo(
       reject(new Error("Network error during upload"));
     });
 
-    xhr.open("POST", `${API_BASE}/upload/video/`);
+    xhr.open("POST", `${DIRECT_API_BASE}/upload/video`);
     xhr.send(form);
   });
 }
@@ -114,7 +114,7 @@ export async function uploadProduct(
       reject(new Error("Network error during upload"));
     });
 
-    xhr.open("POST", `${API_BASE}/upload/product/`);
+    xhr.open("POST", `${DIRECT_API_BASE}/upload/product`);
     xhr.send(form);
   });
 }
@@ -124,22 +124,26 @@ export async function logInteraction(
   watchTimeMs: number
 ): Promise<InteractionResponse> {
   const res = await fetch(
-    `${API_BASE}/video/interactions/?video_id=${encodeURIComponent(videoId)}&watch_time_ms=${watchTimeMs}`,
+    `${API_BASE}/video/interactions?video_id=${encodeURIComponent(videoId)}&watch_time_ms=${watchTimeMs}`,
     { method: "POST" }
   );
   if (!res.ok) throw new Error(`Interaction log failed: ${res.status}`);
   return res.json();
 }
 
-export async function fetchShopProducts(): Promise<ProductMetadata[]> {
+export async function fetchShopProducts(numProducts = 20): Promise<ProductMetadata[]> {
   try {
-    const res = await fetch(`${API_BASE}/shop/products`);
+    const res = await fetch(`${API_BASE}/shop/products?num_products=${numProducts}`);
     if (!res.ok) return [];
     const data = await res.json();
     return normalizeShopProductsResponse(data);
   } catch {
     return [];
   }
+}
+
+export async function refreshShop(): Promise<void> {
+  await fetch(`${API_BASE}/shop/refresh`, { method: "POST" });
 }
 
 export function getVideoUrl(videoId: string): string {

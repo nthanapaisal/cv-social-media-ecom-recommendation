@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { useMutation } from "@tanstack/react-query";
+import Link from "next/link";
 import { uploadProduct } from "@/lib/api-client";
 import { FileDropzone } from "./FileDropzone";
 import { Button } from "@/components/ui/button";
@@ -19,6 +20,8 @@ import { Progress } from "@/components/ui/progress";
 import { CATEGORY_COLORS } from "@/lib/constants";
 import { PRODUCT_CATEGORIES } from "@/lib/types";
 import type { ProductCategory, ProductUploadResponse } from "@/lib/types";
+import { CheckCircle2, AlertCircle, ImageIcon, Loader2, Upload } from "lucide-react";
+import { toast } from "sonner";
 
 const PROGRESS_THRESHOLDS = {
   UPLOAD_COMPLETE: 50,
@@ -34,6 +37,7 @@ export function ProductUploadForm() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState<ProductCategory | "">("");
+  const [price, setPrice] = useState("");
   const [phase, setPhase] = useState<UploadPhase>("idle");
   const [result, setResult] = useState<ProductUploadResponse | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -76,12 +80,13 @@ export function ProductUploadForm() {
   });
 
   const handleSubmit = () => {
-    if (!file || !title.trim() || !description.trim() || !category) return;
+    if (!file || !title.trim() || !description.trim() || !category || !price) return;
     const formData = new FormData();
     formData.append("image", file);
     formData.append("title", title.trim());
     formData.append("description", description.trim());
     formData.append("category", category);
+    formData.append("price", price);
     setPhase("uploading");
     mutation.mutate(formData);
   };
@@ -91,6 +96,7 @@ export function ProductUploadForm() {
     setTitle("");
     setDescription("");
     setCategory("");
+    setPrice("");
     setPhase("idle");
     setResult(null);
   };
@@ -167,7 +173,7 @@ export function ProductUploadForm() {
   }
 
   const isUploading = ["uploading", "analyzing", "finalizing"].includes(phase) || mutation.isPending;
-  const isValid = file && title.trim() && description.trim() && category;
+  const isValid = file && title.trim() && description.trim() && category && price && Number(price) >= 0;
 
   return (
     <div className="space-y-5 p-4 md:p-6">
@@ -182,6 +188,7 @@ export function ProductUploadForm() {
         preview={
           imagePreview ? (
             <div className="flex justify-center bg-black/20 p-4">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={imagePreview}
                 alt="Preview"
@@ -235,6 +242,20 @@ export function ProductUploadForm() {
             ))}
           </SelectContent>
         </Select>
+      </div>
+
+      <div className="space-y-2">
+        <label className="text-sm font-medium text-white/70">Price ($)</label>
+        <Input
+          type="number"
+          placeholder="0.00"
+          min="0"
+          step="0.01"
+          value={price}
+          onChange={(e) => setPrice(e.target.value)}
+          disabled={isUploading}
+          className="bg-white/5 border-white/10"
+        />
       </div>
 
       {isUploading && (

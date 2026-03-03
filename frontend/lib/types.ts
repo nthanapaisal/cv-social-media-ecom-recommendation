@@ -2,7 +2,7 @@ export interface VideoMetadata {
   video_id: string;
   video_path: string;
   duration_ms: number;
-  caption: string;
+  caption?: string | null;
   bucket_num: string;
   bucket_name: string;
 }
@@ -14,6 +14,7 @@ export interface ProductMetadata {
   product_details: string;
   bucket_num: string;
   bucket_name: string;
+  price: number;
 }
 
 export interface CartItem {
@@ -31,7 +32,7 @@ export interface VideoUploadResponse {
   video_id: string;
   video_path: string;
   duration_ms: number;
-  description: string;
+  caption: string;
   bucket_num: string;
   bucket_name: string;
   status: UploadStatus;
@@ -45,6 +46,7 @@ export interface ProductUploadResponse {
   product_details: string;
   bucket_num: string;
   bucket_name: string;
+  price: number;
   status: UploadStatus;
   parquet_path: string;
 }
