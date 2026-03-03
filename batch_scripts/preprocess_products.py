@@ -2,6 +2,7 @@ import argparse
 import json
 import os
 import uuid
+import random
 from pathlib import Path
 from typing import List, Optional
 from types import SimpleNamespace
@@ -42,16 +43,16 @@ PRODUCT_CATEGORIES = [
 
 # Per-category upload limits. Set to desired integer limits per category.
 PRODUCT_CATEGORY_LIMITS = {
-    "fashion": 2,
-    "beauty": 2,
-    "electronics": 2,
-    "home": 2,
-    "fitness": 2,
-    "food": 2,
-    "baby": 2,
-    "automotive": 2,
-    "pets": 2,
-    "gaming": 2,
+    "fashion": 20,
+    "beauty": 20,
+    "electronics": 20,
+    "home": 20,
+    "fitness": 20,
+    "food": 20,
+    "baby": 20,
+    "automotive": 20,
+    "pets": 20,
+    "gaming": 20,
 }
 
 # Titles containing any of these (case-insensitive) will be discarded
@@ -85,10 +86,11 @@ class _CategoryObj:
         self.value = value
 
 class _RequestPayload:
-    def __init__(self, title: str, description: str, category_value: str):
+    def __init__(self, title: str, description: str, category_value: str, price: int):
         self.title = title
         self.description = description
         self.category = _CategoryObj(category_value)
+        self.price = price
 
 def process_product_entry(product: dict, json_path: str, image_base_folder: str, idx: int, debug: bool = False, interactive: bool = False, category_counts: Optional[dict] = None) -> Optional[dict]:
     # Extract expected fields (fall back to sensible defaults)
@@ -207,12 +209,14 @@ def process_product_entry(product: dict, json_path: str, image_base_folder: str,
             print(f"Skipping upload for {item_name}: category '{category}' reached limit ({limit})")
         return None
 
-    req = _RequestPayload(title=item_name, description=product_description, category_value=category)
+    product_price = random.random() * 100
+    
+    req = _RequestPayload(title=item_name, description=product_description, category_value=category, price=product_price)
     product_id = str(uuid.uuid4())
 
     try:
         # Update request payload category to match final chosen category
-        req = _RequestPayload(title=item_name, description=product_description, category_value=category)
+        req = _RequestPayload(title=item_name, description=product_description, category_value=category, price=product_price)
         result = upload_product_service(product_id, img, req)
         if debug:
             print(f"Uploaded product {product_id}: {result}")
