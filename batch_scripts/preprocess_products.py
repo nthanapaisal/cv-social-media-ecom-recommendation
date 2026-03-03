@@ -54,6 +54,9 @@ PRODUCT_CATEGORY_LIMITS = {
     "gaming": 2,
 }
 
+# Titles containing any of these (case-insensitive) will be discarded
+FORBIDDEN_TITLE_KEYWORDS = ["rug", "pillow", "mobile cover"]
+
 def list_json_files(folder: str) -> List[str]:
     p = Path(folder)
     if not p.exists():
@@ -101,12 +104,23 @@ def process_product_entry(product: dict, json_path: str, image_base_folder: str,
             if isinstance(first, str):
                 return first
             return str(first)
-        
+
         if isinstance(v, dict) and "value" in v:
             return str(v["value"])
         return str(v)
 
     item_name = _first_value_from_field("item_name") or _first_value_from_field("title") or f"product-{idx}"
+    # Discard products whose title contains forbidden keywords
+    try:
+        title_lc = item_name.lower() if item_name is not None else ""
+    except Exception:
+        title_lc = str(item_name).lower()
+    for _kw in FORBIDDEN_TITLE_KEYWORDS:
+        if _kw in title_lc:
+            if debug:
+                print(f"Discarding product {item_name}: title contains forbidden keyword '{_kw}'")
+            return None
+
     item_keywords = product.get("item_keywords")
 
     product_description = _first_value_from_field("product_description") or _first_value_from_field("description") or ""
@@ -143,7 +157,7 @@ def process_product_entry(product: dict, json_path: str, image_base_folder: str,
     if interactive:
         print(f"Product: {item_name}")
         print(f"Current category: {category}")
-        print("Options: 0=discard, 1=keep current, 2+ = choose category from list below")
+        print("Options: Enter=keep current, 0=discard, 2+ = choose category from list below")
         for i, cat in enumerate(PRODUCT_CATEGORIES):
             print(f"  {i+2}: {cat}")
         while True:
@@ -153,13 +167,15 @@ def process_product_entry(product: dict, json_path: str, image_base_folder: str,
                 if debug:
                     print("No interactive input available; keeping current category")
                 break
+            # Treat empty input (Enter) as 'keep current category'
             if not sel:
-                continue
-            try:
-                si = int(sel)
-            except ValueError:
-                print("Invalid selection — please enter a number")
-                continue
+                si = 1
+            else:
+                try:
+                    si = int(sel)
+                except ValueError:
+                    print("Invalid selection — please enter a number")
+                    continue
             if si == 0:
                 if debug:
                     print(f"User discarded product {item_name}")

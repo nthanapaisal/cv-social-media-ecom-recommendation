@@ -73,7 +73,7 @@ def classify_videos_in_folder(folder: str, genre_clf_model) -> None:
 				print(f"Updated parquet: {out_path}\n")
 			except Exception as e:
 				print(f"Failed to update parquet for {video_path}: {e}")
-        
+
 		except Exception as e:
 			print(f"Failed to classify {video_path}: {e}")
 
