@@ -40,7 +40,8 @@ export function VideoCard({ video, onVisible }: VideoCardProps) {
     isVisible ? video.video_id : null,
     video.bucket_name || null,
     isVisible,
-    isPlaying
+    isPlaying,
+    video.duration_ms
   );
 
   return (

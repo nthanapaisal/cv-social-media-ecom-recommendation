@@ -4,26 +4,33 @@ import { useCallback, useEffect, useRef } from "react";
 import { logInteraction } from "@/lib/api-client";
 import { useAppStore } from "@/store/app-store";
 
+const MAX_LOOPS = 3;
+
 export function useInteractionTracker(
   videoId: string | null,
   bucketName: string | null,
   isVisible: boolean,
-  isPlaying?: boolean
+  isPlaying?: boolean,
+  durationMs?: number
 ) {
   const startTimeRef = useRef<number | null>(null);
   const addWatchedBucket = useAppStore((s) => s.addWatchedBucket);
 
   const report = useCallback(async () => {
     if (!videoId || !startTimeRef.current) return;
-    const watchTimeMs = Date.now() - startTimeRef.current;
+    let watchTimeMs = Date.now() - startTimeRef.current;
     if (watchTimeMs < 500) return;
+    // Cap at 3 full loops worth of watch time
+    if (durationMs && durationMs > 0) {
+      watchTimeMs = Math.min(watchTimeMs, MAX_LOOPS * durationMs);
+    }
     startTimeRef.current = null;
     try {
       await logInteraction(videoId, watchTimeMs);
     } catch {
       // silently fail interaction logging
     }
-  }, [videoId]);
+  }, [videoId, durationMs]);
 
   // Start the clock when video becomes visible; report total watch time when scrolled away
   useEffect(() => {

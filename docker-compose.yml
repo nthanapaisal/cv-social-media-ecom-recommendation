@@ -10,3 +10,21 @@ services:
     volumes:
       - .:/app
     command: python -Xfrozen_modules=off -m debugpy --listen 0.0.0.0:5678 -m uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        # Baked into Next.js rewrites at build time so the server-side proxy
+        # can reach the backend container by its Docker service name
+        BACKEND_URL: http://cv-ecomm-rec-api:8000
+    container_name: cv-ecomm-frontend
+    environment:
+      # DATA_DIR points to the mounted host data folder so videos/images are served correctly
+      - DATA_DIR=/data
+    volumes:
+      - ./data:/data:ro
+    ports:
+      - "127.0.0.1:3000:3000"
+    depends_on:
+      - cv-social-media-ecom-recommendation
