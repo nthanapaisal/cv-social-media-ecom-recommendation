@@ -186,19 +186,20 @@ def video_recommendation(n_recommended: int = 10) -> list[dict]:
     
     if len(videos_df) <= n_recommended:
         return _df_to_records(videos_df)
-    
+
     # If fewer than n videos exist in the database , return all
     if len(videos_df) <= n_recommended:
         return _df_to_records(videos_df)
-    
+
     user_interactions_df = download_user_interactions()
 
     try:
+        print(user_interactions_df)
+
         # Step 1: Fallback if user has no interactions yet
         if user_interactions_df.empty:
             return _df_to_records(videos_df.sample(min(n_recommended, len(videos_df))))
-        
-
+            
         # step 2: Join interactions with video metadata to get bucket_num (category of videos interacted with)
         ui_df = user_interactions_df.set_index("video_id")
         v_df = videos_df.set_index("video_id")
@@ -207,7 +208,7 @@ def video_recommendation(n_recommended: int = 10) -> list[dict]:
 
         if interactions_with_buckets.empty:
             return _df_to_records(videos_df.sample(min(n_recommended, len(videos_df))))
-        
+
         # Step 3: Calculate weights for each bucket based on watch time
         buckets_watched = interactions_with_buckets["bucket_num"].astype(np.int32).values
         watch_times = interactions_with_buckets["watch_time_ms"].astype(np.float32).values
