@@ -105,9 +105,13 @@ def download_all_videos_metadata():
     return df
 
 def download_user_interactions()-> pd.DataFrame:
+    if not os.path.exists(USER_INTERACTION_PARQUET_DIR):
+        return pd.DataFrame(columns=["video_id", "watch_time_ms"])
+
     df = pd.read_parquet(USER_INTERACTION_PARQUET_DIR)
     if df.empty:
-        return pd.DataFrame("")
+        return pd.DataFrame(columns=["video_id", "watch_time_ms"])
+        
     return df
 
 def download_all_products_metadata()->pd.DataFrame:
