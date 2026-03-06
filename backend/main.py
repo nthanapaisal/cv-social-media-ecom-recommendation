@@ -86,6 +86,10 @@ def startup():
 
     print("main.py: Loaded models")
 
+@app.get("/health")
+def health_check():
+    return {"status": "ok"}
+
 def get_genre_classifier():
     return app.state.genre_classifier
 

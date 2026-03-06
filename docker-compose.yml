@@ -10,6 +10,12 @@ services:
     volumes:
       - .:/app
     command: python -Xfrozen_modules=off -m debugpy --listen 0.0.0.0:5678 -m uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 15s
+      timeout: 10s
+      retries: 20
+      start_period: 60s
 
   frontend:
     build:
@@ -27,4 +33,5 @@ services:
     ports:
       - "127.0.0.1:3000:3000"
     depends_on:
-      - cv-social-media-ecom-recommendation
+      cv-social-media-ecom-recommendation:
+        condition: service_healthy
