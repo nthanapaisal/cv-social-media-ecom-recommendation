@@ -65,7 +65,6 @@ def get_base_frames(video_path: str, num_frames: int = 10):
 
 def weighted_fusion(all_signal_outputs):
     scores = {}
-    classification_count = 0
     
     for signal_name, bucket_name, confidence in all_signal_outputs:
         if signal_name == "classification" and bucket_name in scores:
@@ -75,14 +74,24 @@ def weighted_fusion(all_signal_outputs):
         scores[bucket_name] = scores.get(bucket_name, 0) + weight
 
     if not scores:
-        return "other"
-
-    if max(scores.values()) < 0.1:
-        return "other"
+        return ["other"]
 
     print(f"Fusion Result: {scores}")
-    # get dict key that has highest value
-    return max(scores, key=scores.get)
+
+    # Multi labels 
+    
+    # sort dict into list
+    categories_tuple_list = list(sorted(scores.items(), key=lambda x: x[1], reverse=True))
+    
+    # filter for > 0.1 threshold only
+    categories_list = [k for k, v in categories_tuple_list if v >= 0.1]
+    
+    # if none are > 0.1 just return the highest one
+    if not categories_list:
+        return [categories_tuple_list[0][0]]
+    
+    # else return list of multi labels
+    return categories_list
 
 def clean_input(text):
 
