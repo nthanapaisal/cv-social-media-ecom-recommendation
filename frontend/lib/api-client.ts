@@ -1,0 +1,155 @@
+import { API_BASE, DIRECT_API_BASE } from "./constants";
+import type {
+  VideoMetadata,
+  ProductMetadata,
+  InteractionResponse,
+  VideoUploadResponse,
+  ProductUploadResponse,
+} from "./types";
+
+function normalizeFeedResponse(data: unknown): VideoMetadata[] {
+  if (Array.isArray(data)) return data;
+  if (data && typeof data === "object" && "videos" in data) {
+    const obj = data as { videos: VideoMetadata[] };
+    return Array.isArray(obj.videos) ? obj.videos : [];
+  }
+  return [];
+}
+
+function normalizeShopProductsResponse(data: unknown): ProductMetadata[] {
+  if (Array.isArray(data)) return data;
+  if (data && typeof data === "object" && "products" in data) {
+    const obj = data as { products: ProductMetadata[] };
+    return Array.isArray(obj.products) ? obj.products : [];
+  }
+  return [];
+}
+
+export async function fetchFeed(vidsNum = 10): Promise<VideoMetadata[]> {
+  const res = await fetch(`${API_BASE}/feed/videos?vids_num=${vidsNum}`);
+  if (!res.ok) throw new Error(`Feed fetch failed: ${res.status}`);
+  const data = await res.json();
+  return normalizeFeedResponse(data);
+}
+
+export async function fetchVideoMetadata(
+  id: string
+): Promise<VideoMetadata> {
+  const res = await fetch(`${API_BASE}/video/metadata/${id}`);
+  if (!res.ok) throw new Error(`Video metadata fetch failed: ${res.status}`);
+  return res.json();
+}
+
+export async function fetchProductMetadata(
+  id: string
+): Promise<ProductMetadata> {
+  const res = await fetch(`${API_BASE}/product/metadata/${id}`);
+  if (!res.ok)
+    throw new Error(`Product metadata fetch failed: ${res.status}`);
+  return res.json();
+}
+
+export async function uploadVideo(
+  form: FormData,
+  onProgress?: (loaded: number, total: number) => void
+): Promise<VideoUploadResponse> {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+
+    xhr.upload.addEventListener("progress", (e) => {
+      if (e.lengthComputable && onProgress) {
+        onProgress(e.loaded, e.total);
+      }
+    });
+
+    xhr.addEventListener("load", () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        try {
+          const response = JSON.parse(xhr.responseText);
+          resolve(response);
+        } catch {
+          reject(new Error("Invalid response from server"));
+        }
+      } else {
+        reject(new Error(xhr.responseText || "Upload failed"));
+      }
+    });
+
+    xhr.addEventListener("error", () => {
+      reject(new Error("Network error during upload"));
+    });
+
+    xhr.open("POST", `${DIRECT_API_BASE}/upload/video`);
+    xhr.send(form);
+  });
+}
+
+export async function uploadProduct(
+  form: FormData,
+  onProgress?: (loaded: number, total: number) => void
+): Promise<ProductUploadResponse> {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+
+    xhr.upload.addEventListener("progress", (e) => {
+      if (e.lengthComputable && onProgress) {
+        onProgress(e.loaded, e.total);
+      }
+    });
+
+    xhr.addEventListener("load", () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        try {
+          const response = JSON.parse(xhr.responseText);
+          resolve(response);
+        } catch {
+          reject(new Error("Invalid response from server"));
+        }
+      } else {
+        reject(new Error(xhr.responseText || "Upload failed"));
+      }
+    });
+
+    xhr.addEventListener("error", () => {
+      reject(new Error("Network error during upload"));
+    });
+
+    xhr.open("POST", `${DIRECT_API_BASE}/upload/product`);
+    xhr.send(form);
+  });
+}
+
+export async function logInteraction(
+  videoId: string,
+  watchTimeMs: number
+): Promise<InteractionResponse> {
+  const res = await fetch(
+    `${API_BASE}/video/interactions?video_id=${encodeURIComponent(videoId)}&watch_time_ms=${watchTimeMs}`,
+    { method: "POST" }
+  );
+  if (!res.ok) throw new Error(`Interaction log failed: ${res.status}`);
+  return res.json();
+}
+
+export async function fetchShopProducts(numProducts = 20): Promise<ProductMetadata[]> {
+  try {
+    const res = await fetch(`${API_BASE}/shop/products?num_products=${numProducts}`);
+    if (!res.ok) return [];
+    const data = await res.json();
+    return normalizeShopProductsResponse(data);
+  } catch {
+    return [];
+  }
+}
+
+export async function refreshShop(): Promise<void> {
+  await fetch(`${API_BASE}/shop/refresh`, { method: "POST" });
+}
+
+export function getVideoUrl(videoId: string): string {
+  return `/api/media/videos/${videoId}`;
+}
+
+export function getProductImageUrl(productId: string): string {
+  return `/api/media/products/${productId}`;
+}
