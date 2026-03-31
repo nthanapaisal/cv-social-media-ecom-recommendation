@@ -2,8 +2,8 @@ import os
 from fastapi import HTTPException
 from backend.src.database.db_utils import upload_video_database, upload_product_database, update_parquet_table, \
     download_video, download_video_metadata, download_product, download_product_metadata, download_all_videos_metadata, download_user_interactions
-from backend.src.detection.detect_modules import classify_video_genre, ocr_read_frames, zero_shot_classification, capping_video
-from backend.src.detection.detect_utils import load_json, get_video_duration_ms_from_path, get_base_frames, weighted_fusion
+from backend.src.detection.detect_modules import classify_video_genre, ocr_read_frames, zero_shot_classification, capping_video, detect_objects_from_frames
+from backend.src.detection.detect_utils import load_json, get_video_duration_ms_from_path, get_base_frames, weighted_fusion, get_top3_objects_min_conf
 import logging
 logger = logging.getLogger(__name__)
 from backend.src.product_recommendation.personalized_recommendation import video_recommendation, product_recommendation
@@ -13,7 +13,7 @@ BUCKETS = load_json("./backend/configs/buckets.json")
 
 
 def upload_video_service(
-    genre_clf_model, ocr_reader, bart_mnli, caption_model, vid_id, video, request_payload
+    genre_clf_model, ocr_reader, bart_mnli, caption_model, object_detector, vid_id, video, request_payload
 ):
     status = "process"
     out_path = None
@@ -70,6 +70,14 @@ def upload_video_service(
         vid_caption_bucket, vid_caption_conf = zero_shot_classification(bart_mnli, list(BUCKETS["buckets"].keys()), vid_caption)
         all_signal_outputs_list.append(("vid_caption", vid_caption_bucket, vid_caption_conf * 0.7))
 
+        # SIGNAL 5: Object Detection
+        detected_objects = detect_objects_from_frames(base_frames, object_detector)
+        top_objects = get_top3_objects_min_conf(detected_objects)
+
+        for detected_object in top_objects:
+            object_detection_bucket, object_detection_conf = zero_shot_classification(bart_mnli, list(BUCKETS["buckets"].keys()), detected_object[0])
+            all_signal_outputs_list.append(("object_detection", object_detection_bucket, detected_object[1] * object_detection_conf))
+            
         # Combine all signals outputs and weights fusion to pick best bucket
         print(f"all_signal_outputs_list: {all_signal_outputs_list}")
         final_buckets_list = weighted_fusion(all_signal_outputs_list)

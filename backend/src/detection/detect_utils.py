@@ -116,3 +116,19 @@ def clean_input(text):
             seen.add(w)
 
     return " ".join(clean)
+
+def get_top3_objects_min_conf(obj_dict, min_conf=0.0):
+    IGNORE = {
+        "person", "face", "hand", "foot",
+        "wall", "floor", "ceiling",
+    }
+
+    filtered = [
+        (label, conf)
+        for label, conf in obj_dict.items()
+        if conf >= min_conf and label not in IGNORE
+    ]
+
+    filtered.sort(key=lambda x: x[1], reverse=True)
+
+    return filtered[:3]
