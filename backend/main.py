@@ -7,6 +7,7 @@ from transformers import pipeline
 from PIL import Image
 import uuid
 import easyocr
+from ultralytics import YOLO
 
 from backend.src.backend_base_services import upload_video_service, upload_product_service, \
     get_vid_by_id_service, get_vid_metadata_by_id_service, get_vids_by_genre_service, \
@@ -87,6 +88,8 @@ def startup():
         device=-1  # CPU
     ) 
 
+    app.state.object_detector = YOLO("yolo11n.pt")
+
     print("main.py: Loaded models")
 
 @app.get("/health")
@@ -105,6 +108,9 @@ def get_bart_mnli():
 def get_caption_model():
     return app.state.caption_model
 
+def get_object_detector():
+    return app.state.object_detector
+
 @app.post("/upload/video")
 async def upload_video(
     video: UploadFile = File(...),
@@ -112,7 +118,8 @@ async def upload_video(
     genre_clf_model= Depends(get_genre_classifier),
     ocr_reader = Depends(get_ocr_reader),
     bart_mnli = Depends(get_bart_mnli),
-    caption_model = Depends(get_caption_model)
+    caption_model = Depends(get_caption_model),
+    object_detector = Depends(get_object_detector)
 ):  
     vid_id = str(uuid.uuid4())
     print(f"main.py: /upload/video id: {vid_id}")
@@ -125,6 +132,7 @@ async def upload_video(
             ocr_reader,
             bart_mnli,
             caption_model,
+            object_detector,
             vid_id, 
             video, 
             request_payload

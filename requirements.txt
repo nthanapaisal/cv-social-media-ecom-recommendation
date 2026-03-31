@@ -4,6 +4,7 @@ uvicorn
 pydantic
 python-multipart
 debugpy
+
 # ML
 transformers>=4.35
 torch
@@ -16,5 +17,6 @@ easyocr
 opencv-python
 av
 nltk
+
 
 # Frontend
