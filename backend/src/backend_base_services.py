@@ -72,11 +72,12 @@ def upload_video_service(
 
         # Combine all signals outputs and weights fusion to pick best bucket
         print(f"all_signal_outputs_list: {all_signal_outputs_list}")
-        final_bucket = weighted_fusion(all_signal_outputs_list)
-        print(f"Final Bucket Selection: {final_bucket}")
+        final_buckets_list = weighted_fusion(all_signal_outputs_list)
+        print(f"Final Bucket Selection: {final_buckets_list}")
 
-        video_metadata["bucket_num"] = BUCKETS["buckets"][final_bucket] 
-        video_metadata["bucket_name"] = final_bucket
+        video_metadata["bucket_num"] = [BUCKETS["buckets"][b] for b in final_buckets_list] 
+        video_metadata["bucket_name"] = final_buckets_list
+
 
         # update parquet table
         out_path = update_parquet_table(video_metadata, "video")
