@@ -82,7 +82,7 @@ def startup():
     )
 
     app.state.caption_model = pipeline(
-        task="image-text-to-text",
+        task="image-to-text",
         model="Salesforce/blip-image-captioning-base",
         device=-1  # CPU
     ) 
@@ -182,13 +182,21 @@ def get_product_metadata_by_id(product_id: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"get_product_metadata_by_id failed: {str(e)}")
 
-@app.post("/video/interactions")
-async def update_video_interactions(
-    video_id: str,
+class InteractionPayload(BaseModel):
+    video_id: str
     watch_time_ms: int
-):
+    skipped_quickly: bool = False
+    watched_50_pct: bool = False
+
+@app.post("/video/interactions")
+async def update_video_interactions(payload: InteractionPayload):
     try:
-        return_payload = update_user_interaction_service(video_id, watch_time_ms)
+        return_payload = update_user_interaction_service(
+            payload.video_id,
+            payload.watch_time_ms,
+            payload.skipped_quickly,
+            payload.watched_50_pct,
+        )
         return return_payload
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"update_video_interactions failed: {str(e)}")

@@ -10,13 +10,22 @@ interface VideoPlayerProps {
   videoId: string;
   isActive: boolean;
   onPlayStateChange?: (isPlaying: boolean) => void;
+  onWatched50Percent?: () => void;
+  onCurrentTimeMs?: (ms: number) => void;
 }
 
-export function VideoPlayer({ videoId, isActive, onPlayStateChange }: VideoPlayerProps) {
+export function VideoPlayer({
+  videoId,
+  isActive,
+  onPlayStateChange,
+  onWatched50Percent,
+  onCurrentTimeMs,
+}: VideoPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [showPlayIcon, setShowPlayIcon] = useState(false);
   const [isBuffering, setIsBuffering] = useState(false);
+  const watched50Ref = useRef(false);
   const muted = useAppStore((s) => s.mutedGlobal);
   const toggleMute = useAppStore((s) => s.toggleMute);
 
@@ -25,10 +34,11 @@ export function VideoPlayer({ videoId, isActive, onPlayStateChange }: VideoPlaye
     if (!video) return;
 
     if (isActive) {
+      watched50Ref.current = false;
       video.play().catch((error) => {
-        if (error.name === 'NotAllowedError') {
-          toast('Tap to play video', {
-            description: 'Autoplay is disabled for this video',
+        if (error.name === "NotAllowedError") {
+          toast("Tap to play video", {
+            description: "Autoplay is disabled for this video",
             duration: 2000,
           });
         }
@@ -76,6 +86,15 @@ export function VideoPlayer({ videoId, isActive, onPlayStateChange }: VideoPlaye
         onPause={() => setIsPlaying(false)}
         onWaiting={() => setIsBuffering(true)}
         onPlaying={() => setIsBuffering(false)}
+        onTimeUpdate={(e) => {
+          const video = e.currentTarget;
+          if (!video.duration) return;
+          onCurrentTimeMs?.(video.currentTime * 1000);
+          if (!watched50Ref.current && video.currentTime / video.duration >= 0.5) {
+            watched50Ref.current = true;
+            onWatched50Percent?.();
+          }
+        }}
       />
 
       {isBuffering && isActive && (
@@ -103,12 +122,20 @@ export function VideoPlayer({ videoId, isActive, onPlayStateChange }: VideoPlaye
         className="absolute top-4 right-4 p-2 rounded-full bg-black/40 backdrop-blur-sm text-white/80 hover:text-white transition-colors z-10"
         aria-label={muted ? "Unmute" : "Mute"}
       >
-        {muted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
+        {muted ? (
+          <VolumeX className="w-5 h-5" />
+        ) : (
+          <Volume2 className="w-5 h-5" />
+        )}
       </button>
 
       {!isPlaying && !isBuffering && isActive && (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <Play className="w-16 h-16 text-white/50" fill="white" fillOpacity={0.5} />
+          <Play
+            className="w-16 h-16 text-white/50"
+            fill="white"
+            fillOpacity={0.5}
+          />
         </div>
       )}
     </div>

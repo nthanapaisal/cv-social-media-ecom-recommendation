@@ -81,14 +81,22 @@ def product_recommendation(n_recommended: int = 20) -> pd.DataFrame:
 
             return result
     
-        # step 4 get the frequency of interaction for each bucket weighted by watch time 
+        # step 4 build engagement scores per interaction
         buckets_watched = interactions_with_buckets["bucket_num"].values.astype(np.int32)
         watch_times = interactions_with_buckets["watch_time_ms"].values.astype(np.float32)
+
+        skipped = interactions_with_buckets["skipped_quickly"].fillna(False).astype(bool).values
+        watched_half = interactions_with_buckets["watched_50_pct"].fillna(False).astype(bool).values
+
+        # Penalise quick skips (0.1×), reward videos watched past halfway (1.5×)
+        engagement_scores = watch_times.copy()
+        engagement_scores[skipped] *= 0.1
+        engagement_scores[watched_half] *= 1.5
 
         products_bucket_num_max = products_df["bucket_num"].astype(np.int32).max()
         max_bucket_id= int(max(buckets_watched.max(), products_bucket_num_max)) + 1
 
-        bucket_watch_frequency_array = np.bincount(buckets_watched, weights = watch_times, minlength= max_bucket_id)
+        bucket_watch_frequency_array = np.bincount(buckets_watched, weights=engagement_scores, minlength=max_bucket_id)
 
         # step 5 based on frequency of interaction weigh the preferred video buckets up that are available in products dataframe and normalize
         total_watch_time = np.sum(bucket_watch_frequency_array)
@@ -209,15 +217,23 @@ def video_recommendation(n_recommended: int = 10) -> list[dict]:
         if interactions_with_buckets.empty:
             return _df_to_records(videos_df.sample(min(n_recommended, len(videos_df))))
 
-        # Step 3: Calculate weights for each bucket based on watch time
+        # Step 3: Calculate engagement scores per interaction
         buckets_watched = interactions_with_buckets["bucket_num"].astype(np.int32).values
         watch_times = interactions_with_buckets["watch_time_ms"].astype(np.float32).values
 
-        # determing max bucket id across both dataframes so that the right number of bins can be made in category watch frequency array
+        skipped = interactions_with_buckets["skipped_quickly"].fillna(False).astype(bool).values
+        watched_half = interactions_with_buckets["watched_50_pct"].fillna(False).astype(bool).values
+
+        # Penalise quick skips (0.1×), reward videos watched past halfway (1.5×)
+        engagement_scores = watch_times.copy()
+        engagement_scores[skipped] *= 0.1
+        engagement_scores[watched_half] *= 1.5
+
+        # determining max bucket id across both dataframes so that the right number of bins can be made in category watch frequency array
         vid_bucket_num_max = videos_df["bucket_num"].astype(np.int32).max()
         max_bucket_id = int(max(buckets_watched.max(), vid_bucket_num_max)) + 1
 
-        bucket_watch_frequency_array = np.bincount(buckets_watched, weights = watch_times, minlength = max_bucket_id)
+        bucket_watch_frequency_array = np.bincount(buckets_watched, weights=engagement_scores, minlength=max_bucket_id)
 
         # step 4: remove videos the user has already watched
         watched_video_ids = user_interactions_df["video_id"].unique()

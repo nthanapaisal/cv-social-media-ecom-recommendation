@@ -134,12 +134,19 @@ def get_product_metadata_by_id_service(product_id):
 def get_products_by_category_service(category):
     return download_products_genre(category)
 
-def update_user_interaction_service(video_id: int, watch_time_ms:int):
+def update_user_interaction_service(
+    video_id: str,
+    watch_time_ms: int,
+    skipped_quickly: bool = False,
+    watched_50_pct: bool = False,
+):
     user_interaction = {
         "video_id": video_id,
         "watch_time_ms": watch_time_ms,
+        "skipped_quickly": skipped_quickly,
+        "watched_50_pct": watched_50_pct,
     }
-    out_path = update_parquet_table(user_interaction , "user")
+    out_path = update_parquet_table(user_interaction, "user")
     return {**user_interaction, "parquet_path": out_path}
 
 def get_feed_service(n_recommended = 10):

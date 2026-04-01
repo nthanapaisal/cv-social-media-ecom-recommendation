@@ -2,6 +2,7 @@ import os
 import pandas as pd
 import shutil
 import numpy as np
+import time
 from fastapi.encoders import jsonable_encoder
 
 VIDEO_DIR = "data/videos"
@@ -60,7 +61,11 @@ def update_parquet_table(data_dict: dict, item_type: str)->str:
     
     os.makedirs(path, exist_ok=True)
     df = pd.DataFrame([data_dict])
-    out_path = os.path.join(path, f"part-{data_dict[id_key]}.parquet")
+    file_key = data_dict[id_key]
+    if item_type == "user":
+        file_key = f"{file_key}-{time.time_ns()}"
+
+    out_path = os.path.join(path, f"part-{file_key}.parquet")
     df.to_parquet(out_path, engine="pyarrow", index=False)
     
     return out_path
@@ -104,14 +109,20 @@ def download_all_videos_metadata():
         raise FileNotFoundError(f"Video metadata not found")
     return df
 
-def download_user_interactions()-> pd.DataFrame:
+_INTERACTION_COLUMNS = ["video_id", "watch_time_ms", "skipped_quickly", "watched_50_pct"]
+
+def download_user_interactions() -> pd.DataFrame:
     if not os.path.exists(USER_INTERACTION_PARQUET_DIR):
-        return pd.DataFrame(columns=["video_id", "watch_time_ms"])
+        return pd.DataFrame(columns=_INTERACTION_COLUMNS)
 
     df = pd.read_parquet(USER_INTERACTION_PARQUET_DIR)
     if df.empty:
-        return pd.DataFrame(columns=["video_id", "watch_time_ms"])
-        
+        return pd.DataFrame(columns=_INTERACTION_COLUMNS)
+
+    for col, default in [("skipped_quickly", False), ("watched_50_pct", False)]:
+        if col not in df.columns:
+            df[col] = default
+
     return df
 
 def download_all_products_metadata()->pd.DataFrame:
