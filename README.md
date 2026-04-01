@@ -6,14 +6,18 @@ Supakjeera Thanapaisal, Suraj Jayakumar, Bryan Smith, Joel Jacob Stephen
 
 ## Description
 
-Full stack application that demonstrates an end-to-end multi-modal social media feed and e-com recommendation system. Uses computer vision to integrate short-form video content with personalized product recommendations
+{name} is a full stack application that demonstrates an end-to-end multi-modal social media feed and e-commerce recommendation system.
+
+We use computer vision to integrate short-form video content with personalized product recommendations through a number of modalities including visual features, textual signal, and semantic descriptions.
 
 ## How to Run
 
 ### Backend
 
 ```cd cv-social-media-ecom-recommendation```
+
 ```docker build -t cv-ecomm-rec-api```
+
 ```docker run -p 127.0.0.1:8000:8000 cv-ecomm-rec-api```
 
 ### Frontend
