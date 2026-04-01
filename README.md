@@ -14,10 +14,8 @@ We use computer vision to integrate short-form video content with personalized p
 
 ### Backend
 
-```cd cv-social-media-ecom-recommendation```
-
-```docker build -t cv-ecomm-rec-api```
-
+```cd cv-social-media-ecom-recommendation```<br>
+```docker build -t cv-ecomm-rec-api```<br>
 ```docker run -p 127.0.0.1:8000:8000 cv-ecomm-rec-api```
 
 ### Frontend
