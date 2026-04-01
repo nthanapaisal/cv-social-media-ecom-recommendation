@@ -9,6 +9,7 @@
 import cv2
 from pyspark.sql import SparkSession
 import requests
+from pyspark.sql.types import StructType, StructField, IntegerType, ArrayType, StringType
 spark = (
         SparkSession.builder
         .appName("MyApp")
@@ -16,6 +17,11 @@ spark = (
         .getOrCreate()
  )
 API_URL = "http://localhost:8000/upload/video"
+
+schema = StructType([
+    StructField("video", IntegerType(), True),
+    StructField("bucket_names", ArrayType(StringType()), True)
+])
 
 # ground truth
 ground_truth_df = spark.read.csv("./data/eval_data/categorization_data.csv", header=True)
@@ -36,13 +42,13 @@ for i in range(1, 209):
         response = requests.post(API_URL, files=files, data=data)
 
     if response.status_code == 200:
-        bucket_name = response.json()["bucket_name"]
-        results.append((i, bucket_name))
-        print(i, bucket_name)
+        bucket_names = response.json()["bucket_name"]
+        results.append((i, bucket_names))
+        print(i, bucket_names)
     else:
         print(i, "ERROR", response.text)
 
-results_df = spark.createDataFrame(results, ["video_id", "bucket_name"])
+results_df = spark.createDataFrame(results, schema)
 results_df.show()
 
 results_df.coalesce(1).write.mode("overwrite").parquet("./data/eval_data/eval_predicted")

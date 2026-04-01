@@ -117,18 +117,16 @@ def clean_input(text):
 
     return " ".join(clean)
 
-def get_top3_objects_min_conf(obj_dict, min_conf=0.0):
+def get_top3_objects_min_conf(detected, min_conf=0.0):
+    # group by label and pick max conf of each label then pick BEST 3 LABELS
     IGNORE = {
         "person", "face", "hand", "foot",
         "wall", "floor", "ceiling",
     }
 
-    filtered = [
-        (label, conf)
-        for label, conf in obj_dict.items()
-        if conf >= min_conf and label not in IGNORE
-    ]
+    result = {}
+    for label, conf in detected:
+        if label not in IGNORE and conf >= min_conf:
+            result[label] = max(result.get(label, 0.0), conf)
 
-    filtered.sort(key=lambda x: x[1], reverse=True)
-
-    return filtered[:3]
+    return sorted(result.items(), key=lambda x: x[1], reverse=True)[:3]

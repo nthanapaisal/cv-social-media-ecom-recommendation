@@ -1,0 +1,65 @@
+
+
+
+__
+classification_prediction: [{'score': 0.6848057508468628, 'label': 'applying cream'}, {'score': 0.05098392814397812, 'label': 'kissing'}, {'score': 0.029267221689224243, 'label': "massaging person's head"}]
+
+Raw_OCR: n 6 i70d 19 3M "16
+Raw input before zeroshot: n 6 i70d 19 3M "16, cleaned_input: 
+
+Raw_description: face foundation you must buy!!
+Raw input before zeroshot: face foundation you must buy!!, cleaned_input: face foundation you must buy
+
+Raw_vid_caption: a woman with long black hair and a white shirt is holding up her finger to the camera
+Raw input before zeroshot: a woman with long black hair and a white shirt is holding up her finger to the camera, cleaned_input: woman with long black hair and white shirt holding her finger the camera
+
+Raw_detected_objects: {'person': 0.9282317757606506, 'bottle': 0.5566402673721313, 'baseball bat': 0.3989880084991455, 'toothbrush': 0.4560084939002991}
+Raw input before zeroshot: bottle, cleaned_input: bottle
+Raw input before zeroshot: toothbrush, cleaned_input: toothbrush
+Raw input before zeroshot: baseball bat, cleaned_input: baseball bat
+
+all_signal_outputs_list: [('classification', 'beauty', 0.6848057508468628), ('classification', 'other', 0.05098392814397812), ('classification', 'beauty', 0.029267221689224243), ('ocr', 'other', 0.0), ('description', 'beauty', 0.9953539967536926), ('vid_caption', 'fashion', 0.4414793848991394), ('object_detection', 'other', 0.31560151235323985), ('object_detection', 'beauty', 0.06502769454398383), ('object_detection', 'hobby', 0.18101209835629817)]
+Fusion Result: {'beauty': 1.7451874421445392, 'other': 0.46658544049721795, 'fashion': 0.4414793848991394, 'hobby': 0.18101209835629817}
+Final Bucket Selection: ['beauty', 'other', 'fashion', 'hobby']
+__
+
+classification_prediction: [{'score': 0.30401086807250977, 'label': 'making bed'}, {'score': 0.16954496502876282, 'label': 'tickling'}, {'score': 0.06399466097354889, 'label': 'massaging feet'}]
+
+Raw_OCR: TEMUG Bubble Sofa TEMUG Bubble Sofa CLICK TO GET IT NOW
+Raw input before zeroshot: TEMUG Bubble Sofa TEMUG Bubble Sofa CLICK TO GET IT NOW, cleaned_input: temug bubble sofa click get now
+
+Raw_description: comfortable cloud sofa from temu
+Raw input before zeroshot: comfortable cloud sofa from temu, cleaned_input: comfortable cloud sofa from temu
+
+Raw_vid_caption: a large orange knitted bean bean bean bean bean bean bean bean bean bean bean bean bean bean bean bean bean bean bean bean bean bean bean bean bean bean bean bean bean bean bean bean bean bean bean bean bean bean bean bean bean bean bean bean bean bean
+Raw input before zeroshot: a large orange knitted bean bean bean bean bean bean bean bean bean bean bean bean bean bean bean bean bean bean bean bean bean bean bean bean bean bean bean bean bean bean bean bean bean bean bean bean bean bean bean bean bean bean bean bean bean bean, cleaned_input: large orange knitted bean
+
+Raw_detected_objects: {'person': 0.8430419564247131, 'couch': 0.5723224878311157, 'bed': 0.4921427071094513, 'potted plant': 0.4175022840499878, 'book': 0.5891310572624207, 'umbrella': 0.30690908432006836}
+Raw input before zeroshot: book, cleaned_input: book
+Raw input before zeroshot: couch, cleaned_input: couch
+Raw input before zeroshot: bed, cleaned_input: bed
+
+all_signal_outputs_list: [('classification', 'home', 0.30401086807250977), ('classification', 'other', 0.16954496502876282), ('classification', 'beauty', 0.06399466097354889), ('ocr', 'home', 0.6732385462250003), ('description', 'outdoor', 0.9238272905349731), ('vid_caption', 'fashion', 0.7947438359260559), ('object_detection', 'hobby', 0.03325457064943338), ('object_detection', 'home', 0.17202909984005643), ('object_detection', 'home', 0.3809302128357466)]
+Fusion Result: {'home': 1.5302087269733131, 'other': 0.16954496502876282, 'beauty': 0.06399466097354889, 'outdoor': 0.9238272905349731, 'fashion': 0.7947438359260559, 'hobby': 0.03325457064943338}
+Final Bucket Selection: ['home', 'outdoor', 'fashion', 'other']
+
+__
+classification_prediction: [{'score': 0.0705966055393219, 'label': 'squat'}, {'score': 0.05916711315512657, 'label': 'making tea'}, {'score': 0.0557430163025856, 'label': 'cleaning toilet'}]
+
+Raw_OCR: This is your sign to start This is your sign to start juicing in 20251 This is your juicing in 2025! Sign Thisis your sign tO start juicing in 2025! juicing in 2025! his is your sign to start juicing in 2025! juicing in 2025! This is sign to start 'juicoug in 2025! clickthelink in our bio to get started This is your sign to start juicing in 20251 started get This is Sign to start in 20251 clickthe link in our bio to get started
+Raw input before zeroshot: This is your sign to start This is your sign to start juicing in 20251 This is your juicing in 2025! Sign Thisis your sign tO start juicing in 2025! juicing in 2025! his is your sign to start juicing in 2025! juicing in 2025! This is sign to start 'juicoug in 2025! clickthelink in our bio to get started This is your sign to start juicing in 20251 started get This is Sign to start in 20251 clickthe link in our bio to get started, cleaned_input: this your sign start juicing thisis his clickthelink our bio get started clickthe link
+
+Raw_description: Ninja Juice Machine on sale now!
+Raw input before zeroshot: Ninja Juice Machine on sale now!, cleaned_input: ninja juice machine sale now
+
+Raw_vid_caption: a pitcher of watermelon with a pitcher of watermelon in the background
+Raw input before zeroshot: a pitcher of watermelon with a pitcher of watermelon in the background, cleaned_input: pitcher watermelon with the background
+
+Raw_detected_objects: {'bowl': 0.8077139854431152, 'cup': 0.8845507502555847, 'person': 0.7297627925872803, 'dining table': 0.5249881148338318, 'potted plant': 0.6137024164199829, 'vase': 0.5633787512779236, 'wine glass': 0.40168437361717224, 'apple': 0.5654874444007874, 'sports ball': 0.508522093296051}
+Raw input before zeroshot: cup, cleaned_input: cup
+Raw input before zeroshot: bowl, cleaned_input: bowl
+Raw input before zeroshot: potted plant, cleaned_input: potted plant
+
+all_signal_outputs_list: [('classification', 'fitness', 0.0705966055393219), ('classification', 'food', 0.05916711315512657), ('classification', 'home', 0.0557430163025856), ('ocr', 'fitness', 0.6185457359597919), ('description', 'gaming', 0.9887465834617615), ('vid_caption', 'food', 0.8704267144203186), ('object_detection', 'outdoor', 0.22758683204928865), ('object_detection', 'food', 0.6524470408882621), ('object_detection', 'outdoor', 0.5672901454886343)]
+Fusion Result: {'fitness': 0.6891423414991138, 'food': 1.5820408684637073, 'home': 0.0557430163025856, 'gaming': 0.9887465834617615, 'outdoor': 0.794876977537923}
+Final Bucket Selection: ['food', 'gaming', 'outdoor', 'fitness']

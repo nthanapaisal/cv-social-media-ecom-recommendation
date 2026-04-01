@@ -94,10 +94,4 @@ def detect_objects_from_frames(frames, object_detector):
 
             detected.append((label, conf))
 
-    # group by label and pick max conf
-    result = {}
-    for label, conf in detected:
-        if label not in result or conf > result[label]:
-            result[label] = conf
-
-    return result
+    return detected
