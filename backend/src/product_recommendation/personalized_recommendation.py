@@ -69,7 +69,8 @@ def product_recommendation(n_recommended: int = 20) -> pd.DataFrame:
         interactions_with_buckets = user_interactions_df.join(videos_df)
         
         interactions_with_buckets = interactions_with_buckets.dropna(subset = ["bucket_num"])
-
+        # Explode bucket_num so each bucket gets its own row with the same watch_time
+        interactions_with_buckets = interactions_with_buckets.reset_index().explode("bucket_num").set_index("video_id")
         interactions_with_buckets["bucket_num"] = interactions_with_buckets["bucket_num"].astype(np.int32)
 
         if interactions_with_buckets.empty:
@@ -205,7 +206,8 @@ def video_recommendation(n_recommended: int = 10) -> list[dict]:
         v_df = videos_df.set_index("video_id")
 
         interactions_with_buckets = ui_df.join(v_df).dropna(subset=["bucket_num"])
-
+        # Explode bucket_num so each bucket gets its own row with the same watch_time
+        interactions_with_buckets = interactions_with_buckets.reset_index().explode("bucket_num").set_index("video_id")
         if interactions_with_buckets.empty:
             return _df_to_records(videos_df.sample(min(n_recommended, len(videos_df))))
 
