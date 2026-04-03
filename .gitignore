@@ -11,3 +11,4 @@ product_images
 yolo11n.pt
 launch.json
 .dockerignore
+datasets/
