@@ -25,6 +25,8 @@ export interface CartItem {
 export interface InteractionResponse {
   video_id: string;
   watch_time_ms: number;
+  skipped_quickly: boolean;
+  watched_50_pct: boolean;
   parquet_path: string;
 }
 

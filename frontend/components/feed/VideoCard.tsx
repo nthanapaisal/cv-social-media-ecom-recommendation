@@ -14,6 +14,7 @@ interface VideoCardProps {
 
 export function VideoCard({ video, onVisible }: VideoCardProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const watched50PctRef = useRef(false);
   const [isVisible, setIsVisible] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [captionExpanded, setCaptionExpanded] = useState(false);
@@ -27,9 +28,12 @@ export function VideoCard({ video, onVisible }: VideoCardProps) {
       ([entry]) => {
         const visible = entry.isIntersecting && entry.intersectionRatio >= 0.75;
         setIsVisible(visible);
-        if (visible) onVisible?.();
+        if (visible) {
+          watched50PctRef.current = false;
+          onVisible?.();
+        }
       },
-      { threshold: [0.75] }
+      { threshold: [0.75] },
     );
 
     observer.observe(el);
@@ -41,7 +45,8 @@ export function VideoCard({ video, onVisible }: VideoCardProps) {
     video.bucket_name || null,
     isVisible,
     isPlaying,
-    video.duration_ms
+    video.duration_ms,
+    watched50PctRef,
   );
 
   return (
@@ -53,6 +58,9 @@ export function VideoCard({ video, onVisible }: VideoCardProps) {
         videoId={video.video_id}
         isActive={isVisible}
         onPlayStateChange={setIsPlaying}
+        onWatched50Percent={() => {
+          watched50PctRef.current = true;
+        }}
       />
 
       {/* Right side action buttons — TikTok style */}

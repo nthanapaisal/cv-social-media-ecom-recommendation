@@ -32,26 +32,23 @@ export async function fetchFeed(vidsNum = 10): Promise<VideoMetadata[]> {
   return normalizeFeedResponse(data);
 }
 
-export async function fetchVideoMetadata(
-  id: string
-): Promise<VideoMetadata> {
+export async function fetchVideoMetadata(id: string): Promise<VideoMetadata> {
   const res = await fetch(`${API_BASE}/video/metadata/${id}`);
   if (!res.ok) throw new Error(`Video metadata fetch failed: ${res.status}`);
   return res.json();
 }
 
 export async function fetchProductMetadata(
-  id: string
+  id: string,
 ): Promise<ProductMetadata> {
   const res = await fetch(`${API_BASE}/product/metadata/${id}`);
-  if (!res.ok)
-    throw new Error(`Product metadata fetch failed: ${res.status}`);
+  if (!res.ok) throw new Error(`Product metadata fetch failed: ${res.status}`);
   return res.json();
 }
 
 export async function uploadVideo(
   form: FormData,
-  onProgress?: (loaded: number, total: number) => void
+  onProgress?: (loaded: number, total: number) => void,
 ): Promise<VideoUploadResponse> {
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
@@ -86,7 +83,7 @@ export async function uploadVideo(
 
 export async function uploadProduct(
   form: FormData,
-  onProgress?: (loaded: number, total: number) => void
+  onProgress?: (loaded: number, total: number) => void,
 ): Promise<ProductUploadResponse> {
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
@@ -121,19 +118,30 @@ export async function uploadProduct(
 
 export async function logInteraction(
   videoId: string,
-  watchTimeMs: number
+  watchTimeMs: number,
+  extras?: { skipped_quickly?: boolean; watched_50_pct?: boolean },
 ): Promise<InteractionResponse> {
-  const res = await fetch(
-    `${API_BASE}/video/interactions?video_id=${encodeURIComponent(videoId)}&watch_time_ms=${watchTimeMs}`,
-    { method: "POST" }
-  );
+  const res = await fetch(`${API_BASE}/video/interactions`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      video_id: videoId,
+      watch_time_ms: watchTimeMs,
+      skipped_quickly: extras?.skipped_quickly ?? false,
+      watched_50_pct: extras?.watched_50_pct ?? false,
+    }),
+  });
   if (!res.ok) throw new Error(`Interaction log failed: ${res.status}`);
   return res.json();
 }
 
-export async function fetchShopProducts(numProducts = 20): Promise<ProductMetadata[]> {
+export async function fetchShopProducts(
+  numProducts = 20,
+): Promise<ProductMetadata[]> {
   try {
-    const res = await fetch(`${API_BASE}/shop/products?num_products=${numProducts}`);
+    const res = await fetch(
+      `${API_BASE}/shop/products?num_products=${numProducts}`,
+    );
     if (!res.ok) return [];
     const data = await res.json();
     return normalizeShopProductsResponse(data);
