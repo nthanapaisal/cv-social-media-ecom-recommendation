@@ -5,6 +5,7 @@ def classify_video_genre(genre_clf, video_path, top_k:int = 5):
     if not video_path:
         raise ValueError("video_path is required")
     preds = genre_clf(video_path, top_k=top_k)
+    print(f"classification_prediction: {preds}")
     return preds
 
 def ocr_read_frames(base_frames, reader, min_conf=0.4):
@@ -34,6 +35,9 @@ def zero_shot_classification(bart_mnli, buckets, input_txt):
 
     cleaned_input = clean_input(input_txt)
     print(f"Raw input before zeroshot: {input_txt}, cleaned_input: {cleaned_input}")
+
+    if not cleaned_input:
+        return ("other", 0.0)
 
     result = bart_mnli(input_txt, buckets, multi_label=True, hypothesis_template="This item belongs to the shopping category: {}")
     bucket_key = result["labels"][0]
@@ -76,3 +80,18 @@ def capping_video(base_frames, caption_model, caption_mode="best"):
         return best_caption
 
     raise ValueError("Invalid caption_mode")
+
+def detect_objects_from_frames(frames, object_detector):
+    results = object_detector(frames, verbose=False)
+
+    detected = []
+
+    for r in results:
+        for box in r.boxes:
+            cls_id = int(box.cls[0])
+            label = r.names[cls_id]
+            conf = float(box.conf[0])
+
+            detected.append((label, conf))
+
+    return detected
