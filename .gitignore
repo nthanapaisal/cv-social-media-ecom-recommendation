@@ -8,3 +8,6 @@ venv/
 data/
 product_images
 .vscode/
+yolo11n.pt
+launch.json
+.dockerignore

@@ -16,7 +16,7 @@ def _df_to_records(df: pd.DataFrame) -> list[dict]:
 # caching product recommendations
 _products_recommendation_cache = {"data": None, "timestamp": 0, "ttl": 300, "n_recommended": 20}
 
-def product_recommendation(n_recommended: int = 20) -> pd.DataFrame:
+def product_recommendation(n_recommended: int = 50) -> pd.DataFrame:
     """
     Recommendation service that returns products in preferred categories with added randomness
 
@@ -69,7 +69,10 @@ def product_recommendation(n_recommended: int = 20) -> pd.DataFrame:
         interactions_with_buckets = user_interactions_df.join(videos_df)
         
         interactions_with_buckets = interactions_with_buckets.dropna(subset = ["bucket_num"])
-
+        # REFACTORED: Explode bucket_num so each bucket in the list gets its own row with the same watch_time
+        # This handles videos with multiple assigned categories (e.g., video has bucket_num=[1,2,3])
+        # After explode: each video-bucket pair gets attributed the full watch_time
+        interactions_with_buckets = interactions_with_buckets.reset_index().explode("bucket_num").set_index("video_id")
         interactions_with_buckets["bucket_num"] = interactions_with_buckets["bucket_num"].astype(np.int32)
 
         if interactions_with_buckets.empty:
@@ -122,7 +125,6 @@ def product_recommendation(n_recommended: int = 20) -> pd.DataFrame:
         # normalizing because need a normalized value between 0 and 1 for np random choice sampling
         bucket_weights = bucket_weights.astype(np.float32)
         bucket_weights = bucket_weights / np.sum(bucket_weights)
-        print(bucket_weights)
         # 80-20 split preferred and random
         n_preferred = int(n_recommended * 0.8)
 
@@ -194,7 +196,7 @@ def video_recommendation(n_recommended: int = 10) -> list[dict]:
     user_interactions_df = download_user_interactions()
 
     try:
-        print(user_interactions_df)
+        
 
         # Step 1: Fallback if user has no interactions yet
         if user_interactions_df.empty:
@@ -205,13 +207,14 @@ def video_recommendation(n_recommended: int = 10) -> list[dict]:
         v_df = videos_df.set_index("video_id")
 
         interactions_with_buckets = ui_df.join(v_df).dropna(subset=["bucket_num"])
-
+        # Explode bucket_num so each bucket gets its own row with the same watch_time
+        interactions_with_buckets = interactions_with_buckets.reset_index().explode("bucket_num").set_index("video_id")
         if interactions_with_buckets.empty:
             return _df_to_records(videos_df.sample(min(n_recommended, len(videos_df))))
 
         # Step 3: Calculate weights for each bucket based on watch time
-        buckets_watched = interactions_with_buckets["bucket_num"].astype(np.int32).values
-        watch_times = interactions_with_buckets["watch_time_ms"].astype(np.float32).values
+        buckets_watched = interactions_with_buckets["bucket_num"].values.astype(np.int32)
+        watch_times = interactions_with_buckets["watch_time_ms"].values.astype(np.float32)
 
         # determing max bucket id across both dataframes so that the right number of bins can be made in category watch frequency array
         vid_bucket_num_max = videos_df["bucket_num"].astype(np.int32).max()
@@ -227,16 +230,29 @@ def video_recommendation(n_recommended: int = 10) -> list[dict]:
             # edge case: user literally watched every video in the database. So just give them random watched videos
             return _df_to_records(videos_df.sample(min(n_recommended, len(videos_df))))
         
+        # REFACTORED: Explode unwatched_videos_df so each bucket gets its own row
+        # This allows proper filtering since unwatched_videos_df has bucket_num as lists (not single values)
+        # After explode: can safely convert bucket_num to int32 and index into bucket_watch_frequency_array
+        unwatched_videos_df = unwatched_videos_df.reset_index().explode("bucket_num").set_index("video_id")
+        unwatched_videos_df["bucket_num"] = unwatched_videos_df["bucket_num"].astype(np.int32)
+        
         # step 5: filtering unwatched videos into preferred categories
-        unwatched_buckets = unwatched_videos_df["bucket_num"].astype(np.int32).values
+        unwatched_buckets = unwatched_videos_df["bucket_num"].values.astype(np.int32)
         preferred_mask = bucket_watch_frequency_array[unwatched_buckets] > 0
 
-        #only keeping unwatched videos whose category has been watched by the user before
-        preferred_vids_df = unwatched_videos_df[preferred_mask].reset_index(drop = True)
+        # REFACTORED: Reset index to make video_id a column before filtering
+        # This preserves video_id as a column for later operations
+        unwatched_videos_df = unwatched_videos_df.reset_index(drop=False)
+        
+        # only keeping unwatched videos whose category has been watched by the user before
+        preferred_vids_df = unwatched_videos_df[preferred_mask]
 
         if preferred_vids_df.empty:
             # if no videos are preferred... maybe because all videos in categories user prefers are watched, recommend random videos watched or unwatched 
             return _df_to_records(videos_df.sample(min(n_recommended, len(videos_df))))
+        
+        # Drop duplicates to get unique videos (since explode created multiple rows per video with different buckets)
+        preferred_vids_df = preferred_vids_df.drop_duplicates(subset=["video_id"])
         
         # Step 6: 70% preferred videos sampled weighted using bucket interaction frequency.
         n_preferred = int(n_recommended * 0.7)
@@ -244,7 +260,7 @@ def video_recommendation(n_recommended: int = 10) -> list[dict]:
         n_preferred_capped = min(n_preferred, len(preferred_vids_df))
 
         # Map the bucket weights to specififc rows in our preferred dataframe
-        pref_vids_buckets = preferred_vids_df["bucket_num"].astype(np.int32).values
+        pref_vids_buckets = preferred_vids_df["bucket_num"].values.astype(np.int32)
         vid_weights = bucket_watch_frequency_array[pref_vids_buckets].astype(np.float32)
         vid_weights /= np.sum(vid_weights) #normalize to bring weights between 0 and 1 so that np random choice can do its thing
 
@@ -259,7 +275,10 @@ def video_recommendation(n_recommended: int = 10) -> list[dict]:
 
         # step 7: 30% exploratory sampling (randomly choose from remaining set of unwatched videos)
         picked_ids = preferred_sampled["video_id"].values
-        exploratory_vids_df = unwatched_videos_df[~unwatched_videos_df["video_id"].isin(picked_ids)].reset_index(drop = True)
+        exploratory_vids_df = unwatched_videos_df[~unwatched_videos_df["video_id"].isin(picked_ids)]
+        
+        # Drop duplicates to get unique videos for exploration set
+        exploratory_vids_df = exploratory_vids_df.drop_duplicates(subset=["video_id"])
 
         n_explore = n_recommended - n_preferred_capped
         # making sure that the number of exploratory videos recommended doesnt exceed the number of those videos available.
