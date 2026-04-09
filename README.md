@@ -24,6 +24,12 @@ We use computer vision to integrate short-form video content with personalized p
 
 <img src="./resources/architecture.png" alt="drawing" width="600"/>
 
+Product recommendation
+<img src="./resources/productrec.png" alt="drawing" width="300"/>
+
+Video recommendation
+<img src="./resources/videorec.jpg" alt="drawing" width="300"/>
+
 ## Data and Preprocessing
 
 ### Videos
@@ -64,6 +70,15 @@ Samples were manually labeled according to the 10 categories
 
 ## Video Categorization
 
+The system combines multiple signals from video classification, object extraction, OCR, captions, and user descriptions.
+
+Models
+- Classification: MCG-NJU/videomae-small-finetuned-kinetics
+- OCR: EasyOCR
+- Object Detection: YOLO11n
+- Captioning: Salesforce/blip-image-captioning-base
+- Zeroshot Classification: facebook/bart-large-mnli
+
 Categories
 1. Fashion
 2. Beauty
@@ -75,6 +90,8 @@ Categories
 8. Automotive
 9. Pets
 10. Gaming
+
+Confidence fusion combines multiple signals into a unified score while reducing noise.
 
 ## User Interaction
 
