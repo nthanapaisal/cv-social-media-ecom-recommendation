@@ -10,7 +10,7 @@ export default function TabsLayout({
   return (
     <div className="flex flex-col md:flex-row h-[100dvh]">
       <SideNav />
-      <div className="flex flex-col flex-1 min-h-0 min-w-0 md:ml-20 lg:ml-64">
+      <div className="flex flex-col flex-1 min-h-0 min-w-0 md:ml-20 lg:ml-60">
         <TopBar />
         <main className="flex-1 min-h-0 overflow-hidden">{children}</main>
         <BottomNav />

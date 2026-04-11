@@ -3,8 +3,8 @@ export interface VideoMetadata {
   video_path: string;
   duration_ms: number;
   caption?: string | null;
-  bucket_num: string;
-  bucket_name: string;
+  bucket_num: string[];
+  bucket_name: string[];
 }
 
 export interface ProductMetadata {
@@ -35,8 +35,8 @@ export interface VideoUploadResponse {
   video_path: string;
   duration_ms: number;
   caption: string;
-  bucket_num: string;
-  bucket_name: string;
+  bucket_num: string[] | null;
+  bucket_name: string[] | null;
   status: UploadStatus;
   parquet_path: string;
 }

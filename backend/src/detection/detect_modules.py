@@ -1,12 +1,14 @@
 from PIL import Image
 from backend.src.detection.detect_utils import clean_input
 
-def classify_video_genre(genre_clf, video_path, top_k:int = 5):
+
+def classify_video_genre(genre_clf, video_path, top_k: int = 5):
     if not video_path:
         raise ValueError("video_path is required")
     preds = genre_clf(video_path, top_k=top_k)
     print(f"classification_prediction: {preds}")
     return preds
+
 
 def ocr_read_frames(base_frames, reader, min_conf=0.4):
     texts = []
@@ -28,6 +30,7 @@ def ocr_read_frames(base_frames, reader, min_conf=0.4):
 
     return ocr_text, ocr_quality
 
+
 def zero_shot_classification(bart_mnli, buckets, input_txt):
 
     if not input_txt or not input_txt.strip():
@@ -39,7 +42,12 @@ def zero_shot_classification(bart_mnli, buckets, input_txt):
     if not cleaned_input:
         return ("other", 0.0)
 
-    result = bart_mnli(input_txt, buckets, multi_label=True, hypothesis_template="This item belongs to the shopping category: {}")
+    result = bart_mnli(
+        input_txt,
+        buckets,
+        multi_label=True,
+        hypothesis_template="This item belongs to the shopping category: {}",
+    )
     bucket_key = result["labels"][0]
     confidence = float(result["scores"][0])
 
@@ -54,13 +62,12 @@ def capping_video(base_frames, caption_model, caption_mode="best"):
         return ""
 
     frame_captions = []
-    
-    for frame in base_frames:
 
+    for frame in base_frames:
         # numpy RGB → PIL
         img = Image.fromarray(frame)
 
-        result = caption_model(images=img, text="")
+        result = caption_model(images=img)
 
         caption = result[0]["generated_text"].strip()
 
@@ -73,13 +80,13 @@ def capping_video(base_frames, caption_model, caption_mode="best"):
         return " ".join(frame_captions)
 
     if caption_mode == "best":
-
         # choose longest caption (usually most descriptive)
         best_caption = max(frame_captions, key=len)
 
         return best_caption
 
     raise ValueError("Invalid caption_mode")
+
 
 def detect_objects_from_frames(frames, object_detector):
     results = object_detector(frames, verbose=False)

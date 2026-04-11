@@ -10,7 +10,7 @@ const geistSans = Geist({
 });
 
 export const metadata: Metadata = {
-  title: "VibeShop",
+  title: "VisCart",
   description: "Watch, discover, and shop — all in one feed.",
 };
 

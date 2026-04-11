@@ -28,18 +28,22 @@ export function SideNav() {
   );
 
   return (
-    <nav className="hidden md:flex fixed left-0 top-0 bottom-0 z-50 w-20 lg:w-64 flex-col border-r border-white/10 bg-black/90 backdrop-blur-lg">
-      <div className="flex items-center h-16 px-4 lg:px-6">
-        <span className="text-xl font-bold tracking-tight">
-          <span className="hidden lg:inline">VibeShop</span>
-          <span className="lg:hidden">V</span>
-        </span>
+    <nav className="hidden md:flex fixed left-0 top-0 bottom-0 z-50 w-20 lg:w-60 flex-col border-r border-white/[0.06] bg-black/95 backdrop-blur-xl">
+      <div className="flex h-16 w-full items-center justify-center lg:justify-start lg:px-5">
+        <Link href="/feed" className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center text-white text-sm font-bold shadow-lg shadow-violet-500/20">
+            V
+          </div>
+          <span className="hidden lg:inline text-lg font-bold tracking-tight bg-gradient-to-r from-white to-white/70 bg-clip-text text-transparent">
+            VisCart
+          </span>
+        </Link>
       </div>
 
-      <div className="flex flex-col gap-1 px-3 mt-4 relative">
+      <div className="flex flex-col gap-0.5 px-3 mt-6 relative">
         {activeIndex >= 0 && (
           <motion.div
-            className="absolute left-0 w-0.5 h-10 bg-white rounded-full"
+            className="absolute left-0 w-[3px] h-10 bg-gradient-to-b from-violet-400 to-fuchsia-400 rounded-full"
             animate={{ top: activeIndex * 44 }}
             transition={{ type: "spring", stiffness: 400, damping: 30 }}
           />
@@ -53,19 +57,19 @@ export function SideNav() {
             <Link
               key={tab.href}
               href={tab.href}
-              className={`flex items-center justify-center lg:justify-start gap-3 h-10 rounded-lg px-3 transition-colors ${
+              className={`flex items-center justify-center lg:justify-start gap-3 h-10 rounded-lg px-3 transition-all duration-200 ${
                 isActive
-                  ? "text-white bg-white/10"
-                  : "text-white/50 hover:text-white/70 hover:bg-white/5"
+                  ? "text-white bg-white/[0.08]"
+                  : "text-white/40 hover:text-white/70 hover:bg-white/[0.04]"
               }`}
             >
               <div className="relative shrink-0">
                 <Icon
                   className="w-5 h-5"
-                  strokeWidth={isActive ? 2.5 : 2}
+                  strokeWidth={isActive ? 2.5 : 1.75}
                 />
                 {showBadge && (
-                  <span className="absolute -top-1.5 -right-2.5 min-w-[16px] h-4 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center px-1">
+                  <span className="absolute -top-1.5 -right-2.5 min-w-[16px] h-4 rounded-full bg-violet-500 text-white text-[10px] font-bold flex items-center justify-center px-1 shadow-lg shadow-violet-500/30">
                     {cartCount > 99 ? "99+" : cartCount}
                   </span>
                 )}
