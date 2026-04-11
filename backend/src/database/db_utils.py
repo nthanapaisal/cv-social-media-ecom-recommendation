@@ -11,7 +11,8 @@ VIDEO_PARQUET_DIR = "data/video_parquet"
 PRODUCT_PARQUET_DIR = "data/product_parquet"
 USER_INTERACTION_PARQUET_DIR = "data/user_interaction_parquet"
 
-########################################## Upload and Update ########################################## 
+
+########################################## Upload and Update ##########################################
 def upload_video_database(vid_id, video):
     os.makedirs(VIDEO_DIR, exist_ok=True)
 
@@ -19,11 +20,12 @@ def upload_video_database(vid_id, video):
     video_path = os.path.join(VIDEO_DIR, f"{vid_id}{ext}")
 
     video.file.seek(0)
-    
+
     with open(video_path, "wb") as f:
-        shutil.copyfileobj(video.file, f)  
+        shutil.copyfileobj(video.file, f)
 
     return video_path
+
 
 def upload_product_database(product_id, image):
     os.makedirs(PRODUCT_DIR, exist_ok=True)
@@ -34,31 +36,27 @@ def upload_product_database(product_id, image):
         image = image.convert("RGB")
 
     image.save(product_path, format="JPEG", quality=95, optimize=True)
-    return product_path 
+    return product_path
 
 
-def update_parquet_table(data_dict: dict, item_type: str)->str:
+def update_parquet_table(data_dict: dict, item_type: str) -> str:
     """
     Inserts a parquet file into its corresponding directory
-    
+
     :param data_dict: actual data you want to store.
     :param item_type: database type to be updated.
     """
-    id_key_map = {
-        "video": "video_id",
-        "product": "product_id",
-        "user": "video_id"
-    }
+    id_key_map = {"video": "video_id", "product": "product_id", "user": "video_id"}
 
     path_map = {
         "video": VIDEO_PARQUET_DIR,
         "product": PRODUCT_PARQUET_DIR,
-        "user": USER_INTERACTION_PARQUET_DIR
+        "user": USER_INTERACTION_PARQUET_DIR,
     }
 
     id_key = id_key_map[item_type]
     path = path_map[item_type]
-    
+
     os.makedirs(path, exist_ok=True)
     df = pd.DataFrame([data_dict])
     file_key = data_dict[id_key]
@@ -67,15 +65,17 @@ def update_parquet_table(data_dict: dict, item_type: str)->str:
 
     out_path = os.path.join(path, f"part-{file_key}.parquet")
     df.to_parquet(out_path, engine="pyarrow", index=False)
-    
+
     return out_path
 
-########################################## Download ########################################## 
+
+########################################## Download ##########################################
 def download_video(video_id: str):
     for fname in os.listdir(VIDEO_DIR):
         if fname.startswith(video_id):
             return os.path.join(VIDEO_DIR, fname)
     raise FileNotFoundError(f"Video {video_id} not found")
+
 
 def download_video_metadata(video_id: str):
     df = pd.read_parquet(VIDEO_PARQUET_DIR)
@@ -89,11 +89,13 @@ def download_video_metadata(video_id: str):
 
     return jsonable_encoder(result)
 
+
 def download_product(product_id: str):
     path = os.path.join(PRODUCT_DIR, f"{product_id}.jpg")
     if not os.path.exists(path):
         raise FileNotFoundError(f"Product image {product_id} not found")
     return path
+
 
 def download_product_metadata(product_id: str):
     df = pd.read_parquet(PRODUCT_PARQUET_DIR)
@@ -103,13 +105,40 @@ def download_product_metadata(product_id: str):
         raise FileNotFoundError(f"Product metadata {product_id} not found")
     return row.iloc[0].to_dict()
 
-def download_all_videos_metadata():
-    df = pd.read_parquet(VIDEO_PARQUET_DIR)
-    if df.empty:
-        raise FileNotFoundError(f"Video metadata not found")
-    return df
 
-_INTERACTION_COLUMNS = ["video_id", "watch_time_ms", "skipped_quickly", "watched_50_pct"]
+def download_all_videos_metadata():
+    parquet_dir = VIDEO_PARQUET_DIR
+    dfs = []
+    for f in sorted(os.listdir(parquet_dir)):
+        if not f.endswith(".parquet"):
+            continue
+        path = os.path.join(parquet_dir, f)
+        df = pd.read_parquet(path)
+        dfs.append(df)
+    if not dfs:
+        raise FileNotFoundError(f"Video metadata not found in database")
+    combined = pd.concat(dfs, ignore_index=True)
+    for col in ("bucket_num", "bucket_name"):
+        if col in combined.columns:
+            combined[col] = combined[col].apply(
+                lambda x: (
+                    list(x)
+                    if isinstance(x, (list, np.ndarray))
+                    else ([x] if pd.notna(x) else [])
+                )
+            )
+    if combined.empty:
+        raise FileNotFoundError(f"Video metadata not found in database")
+    return combined
+
+
+_INTERACTION_COLUMNS = [
+    "video_id",
+    "watch_time_ms",
+    "skipped_quickly",
+    "watched_50_pct",
+]
+
 
 def download_user_interactions() -> pd.DataFrame:
     if not os.path.exists(USER_INTERACTION_PARQUET_DIR):
@@ -125,7 +154,8 @@ def download_user_interactions() -> pd.DataFrame:
 
     return df
 
-def download_all_products_metadata()->pd.DataFrame:
+
+def download_all_products_metadata() -> pd.DataFrame:
     df = pd.read_parquet(PRODUCT_PARQUET_DIR)
     if df.empty:
         raise FileNotFoundError(f"Product metadata not found")

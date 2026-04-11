@@ -38,12 +38,10 @@ export function VideoFeed() {
 
   if (isLoading) {
     return (
-      <div className="h-full flex items-center justify-center bg-black md:bg-zinc-950">
-        <div className="w-full h-full md:max-w-[480px] md:mx-auto md:border-x md:border-white/10 flex items-center justify-center bg-black">
-          <div className="flex flex-col items-center gap-4">
-            <Loader2 className="w-8 h-8 text-white/60 animate-spin" />
-            <p className="text-white/40 text-sm">Loading feed...</p>
-          </div>
+      <div className="h-full flex items-center justify-center bg-black md:py-3">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="w-8 h-8 text-white/50 animate-spin" />
+          <p className="text-white/35 text-sm">Loading feed...</p>
         </div>
       </div>
     );
@@ -51,16 +49,14 @@ export function VideoFeed() {
 
   if (isError) {
     return (
-      <div className="h-full flex items-center justify-center bg-black md:bg-zinc-950">
-        <div className="w-full h-full md:max-w-[480px] md:mx-auto md:border-x md:border-white/10 flex items-center justify-center bg-black">
-          <div className="flex flex-col items-center gap-4 text-center px-8">
-            <p className="text-white/60 text-sm">
-              Something went wrong loading the feed.
-            </p>
-            <Button variant="secondary" size="sm" onClick={() => refetch()}>
-              Try Again
-            </Button>
-          </div>
+      <div className="h-full flex items-center justify-center bg-black md:py-3">
+        <div className="flex flex-col items-center gap-4 text-center px-8">
+          <p className="text-white/50 text-sm">
+            Something went wrong loading the feed.
+          </p>
+          <Button variant="secondary" size="sm" onClick={() => refetch()}>
+            Try Again
+          </Button>
         </div>
       </div>
     );
@@ -68,39 +64,40 @@ export function VideoFeed() {
 
   if (videos.length === 0) {
     return (
-      <div className="h-full flex items-center justify-center bg-black md:bg-zinc-950">
-        <div className="w-full h-full md:max-w-[480px] md:mx-auto md:border-x md:border-white/10 flex items-center justify-center bg-black">
-          <div className="flex flex-col items-center gap-4 text-center px-8">
-            <VideoOff className="w-12 h-12 text-white/30" />
-            <p className="text-white/60 text-sm">No videos yet</p>
-            <p className="text-white/40 text-xs">
-              Be the first to upload a video!
-            </p>
-            <Button variant="secondary" size="sm" asChild>
-              <Link href="/upload/video">Upload Video</Link>
-            </Button>
-          </div>
+      <div className="h-full flex items-center justify-center bg-black md:py-3">
+        <div className="flex flex-col items-center gap-4 text-center px-8">
+          <VideoOff className="w-12 h-12 text-white/20" />
+          <p className="text-white/50 text-sm">No videos yet</p>
+          <p className="text-white/35 text-xs">
+            Be the first to upload a video!
+          </p>
+          <Button variant="secondary" size="sm" asChild>
+            <Link href="/upload/video">Upload Video</Link>
+          </Button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="h-full bg-black md:bg-zinc-950 md:flex md:justify-center">
-      <div className="h-full w-full md:max-w-[480px] md:border-x md:border-white/10 overflow-y-scroll snap-y snap-mandatory scrollbar-hide">
-        {videos.map((video, index) => (
-          <VideoCard
-            key={video.video_id}
-            video={video}
-            onVisible={() => handleCardVisible(index)}
-          />
-        ))}
-        <div ref={sentinelRef} className="h-1" />
-        {isFetchingMore && (
-          <div className="flex justify-center py-4">
-            <Loader2 className="w-6 h-6 text-white/40 animate-spin" />
-          </div>
-        )}
+    <div className="h-full min-h-0 bg-black md:flex md:items-center md:justify-center md:py-3">
+      {/* Desktop: md:py-3 inset; width uses usable height (viewport − top bar − vertical inset) × 9/16 */}
+      <div className="h-full w-full md:h-auto md:w-[min(100%,calc((100dvh-3.5rem-1.5rem)*9/16))] md:aspect-[9/16] md:rounded-2xl md:border md:border-white/[0.06] md:overflow-hidden flex-shrink-0">
+        <div className="h-full overflow-y-scroll snap-y snap-mandatory scrollbar-hide">
+          {videos.map((video, index) => (
+            <VideoCard
+              key={video.video_id}
+              video={video}
+              onVisible={() => handleCardVisible(index)}
+            />
+          ))}
+          <div ref={sentinelRef} className="h-1" />
+          {isFetchingMore && (
+            <div className="flex justify-center py-4">
+              <Loader2 className="w-6 h-6 text-white/30 animate-spin" />
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

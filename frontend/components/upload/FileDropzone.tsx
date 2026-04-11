@@ -57,17 +57,17 @@ export function FileDropzone({
 
   if (selectedFile) {
     return (
-      <div className="relative rounded-xl border border-white/10 overflow-hidden bg-white/5">
+      <div className="relative rounded-2xl border border-white/[0.06] overflow-hidden bg-white/[0.03]">
         {preview || (
           <div className="flex items-center gap-3 p-4">
             {accept.includes("video") ? (
-              <FileVideo className="w-8 h-8 text-white/40" />
+              <FileVideo className="w-8 h-8 text-white/30" />
             ) : (
-              <ImageIcon className="w-8 h-8 text-white/40" />
+              <ImageIcon className="w-8 h-8 text-white/30" />
             )}
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium truncate">{selectedFile.name}</p>
-              <p className="text-xs text-white/40">
+              <p className="text-xs text-white/35">
                 {(selectedFile.size / (1024 * 1024)).toFixed(1)} MB
               </p>
             </div>
@@ -75,7 +75,7 @@ export function FileDropzone({
         )}
         <button
           onClick={onClear}
-          className="absolute top-2 right-2 p-1.5 rounded-full bg-black/60 text-white/70 hover:text-white transition-colors"
+          className="absolute top-2 right-2 p-1.5 rounded-full bg-black/60 backdrop-blur-sm text-white/60 hover:text-white transition-colors border border-white/[0.06]"
         >
           <X className="w-4 h-4" />
         </button>
@@ -90,10 +90,10 @@ export function FileDropzone({
       onDragLeave={handleDragLeave}
       onClick={() => inputRef.current?.click()}
       className={cn(
-        "cursor-pointer rounded-xl border-2 border-dashed p-8 text-center transition-all",
+        "cursor-pointer rounded-2xl border-2 border-dashed p-10 text-center transition-all duration-200",
         isDragOver
-          ? "border-white/40 bg-white/10"
-          : "border-white/15 bg-white/5 hover:border-white/25 hover:bg-white/[0.07]"
+          ? "border-violet-400/40 bg-violet-500/5"
+          : "border-white/[0.08] bg-white/[0.02] hover:border-white/[0.15] hover:bg-white/[0.04]"
       )}
     >
       <input
@@ -104,10 +104,10 @@ export function FileDropzone({
         className="hidden"
       />
       <div className="flex flex-col items-center gap-3">
-        {icon || <Upload className="w-10 h-10 text-white/30" />}
+        {icon || <Upload className="w-10 h-10 text-white/20" />}
         <div>
-          <p className="text-sm font-medium text-white/70">{label}</p>
-          <p className="text-xs text-white/40 mt-1">{hint}</p>
+          <p className="text-sm font-medium text-white/60">{label}</p>
+          <p className="text-xs text-white/30 mt-1">{hint}</p>
         </div>
       </div>
     </div>

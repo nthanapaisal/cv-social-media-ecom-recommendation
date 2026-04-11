@@ -25,7 +25,7 @@ export function TopBar() {
   const title =
     Object.entries(TITLES).find(([path]) =>
       pathname.startsWith(path)
-    )?.[1] ?? "VibeShop";
+    )?.[1] ?? "VisCart";
 
   const handleRefresh = async () => {
     if (!isShop) return;
@@ -40,18 +40,18 @@ export function TopBar() {
 
   return (
     <header
-      className={`sticky top-0 z-40 flex items-center justify-between h-12 md:h-14 px-4 md:px-6 border-b border-white/10 bg-black/90 backdrop-blur-lg ${
+      className={`sticky top-0 z-40 flex items-center justify-between h-12 md:h-14 px-4 md:px-6 border-b border-white/[0.06] bg-black/95 backdrop-blur-xl ${
         isFeed ? "hidden md:flex" : ""
       }`}
     >
-      <h1 className="text-lg font-semibold tracking-tight">{title}</h1>
+      <h1 className="text-base font-semibold tracking-tight text-white/90">{title}</h1>
       {isShop && (
         <Button
           variant="ghost"
           size="icon"
           onClick={handleRefresh}
           disabled={isRefreshing}
-          className="shrink-0 text-white/50 hover:text-white h-8 w-8"
+          className="shrink-0 text-white/40 hover:text-white h-8 w-8"
         >
           <RefreshCw className={`w-4 h-4 ${isRefreshing ? "animate-spin" : ""}`} />
         </Button>

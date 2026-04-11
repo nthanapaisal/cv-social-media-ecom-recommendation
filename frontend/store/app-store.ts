@@ -80,7 +80,7 @@ export const useAppStore = create<AppState>()(
         get().cart.reduce((sum, item) => sum + item.quantity, 0),
     }),
     {
-      name: "vibeshop-storage",
+      name: "viscart-storage",
       partialize: (state) => ({ cart: state.cart, watchedBuckets: state.watchedBuckets }),
     }
   )

@@ -28,11 +28,11 @@ export function BottomNav() {
   );
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-white/10 bg-black/90 backdrop-blur-lg pb-[env(safe-area-inset-bottom)] md:hidden">
-      <div className="flex items-center justify-around h-14 max-w-lg mx-auto relative">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-white/[0.06] bg-black/95 backdrop-blur-xl pb-[env(safe-area-inset-bottom)] md:hidden">
+      <div className="flex items-center justify-around h-16 max-w-lg mx-auto relative">
         {activeIndex >= 0 && (
           <motion.div
-            className="absolute top-0 h-0.5 bg-white rounded-full"
+            className="absolute top-0 h-[2.5px] bg-gradient-to-r from-violet-400 to-fuchsia-400 rounded-full"
             style={{ width: `${100 / tabs.length}%` }}
             animate={{ left: `${(activeIndex * 100) / tabs.length}%` }}
             transition={{ type: "spring", stiffness: 400, damping: 30 }}
@@ -48,16 +48,16 @@ export function BottomNav() {
             <Link
               key={tab.href}
               href={tab.href}
-              className={`relative flex flex-col items-center justify-center gap-0.5 flex-1 h-full transition-colors ${
+              className={`relative flex flex-col items-center justify-center gap-1 flex-1 h-full transition-all duration-200 ${
                 isActive
                   ? "text-white"
-                  : "text-white/50 hover:text-white/70"
+                  : "text-white/40 hover:text-white/60"
               }`}
             >
               <div className="relative">
-                <Icon className="w-5 h-5" strokeWidth={isActive ? 2.5 : 2} />
+                <Icon className="w-5 h-5" strokeWidth={isActive ? 2.5 : 1.75} />
                 {showBadge && (
-                  <span className="absolute -top-1.5 -right-2.5 min-w-[16px] h-4 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center px-1">
+                  <span className="absolute -top-1.5 -right-2.5 min-w-[16px] h-4 rounded-full bg-violet-500 text-white text-[10px] font-bold flex items-center justify-center px-1 shadow-lg shadow-violet-500/30">
                     {cartCount > 99 ? "99+" : cartCount}
                   </span>
                 )}

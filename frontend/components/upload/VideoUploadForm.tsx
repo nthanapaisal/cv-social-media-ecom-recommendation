@@ -90,8 +90,6 @@ export function VideoUploadForm() {
   };
 
   if (phase === "done" && result) {
-    const colorClass =
-      CATEGORY_COLORS[result.bucket_name] || CATEGORY_COLORS.other;
     const hasAnalysisWarnings = result.status === "uploaded_successful_but_failed_detect_classify";
 
     return (
@@ -115,15 +113,18 @@ export function VideoUploadForm() {
           </div>
         )}
         <div className="w-full bg-white/5 rounded-xl p-4 text-left space-y-2">
-          {result.bucket_name && (
-            <p className="text-sm">
-              <span className="text-white/50">Category: </span>
-              <Badge
-                variant="secondary"
-                className={`${colorClass} text-white border-0 text-xs capitalize`}
-              >
-                {result.bucket_name}
-              </Badge>
+          {result.bucket_name && result.bucket_name.length > 0 && (
+            <p className="text-sm flex items-center gap-1.5 flex-wrap">
+              <span className="text-white/50">Categor{result.bucket_name.length > 1 ? "ies" : "y"}: </span>
+              {result.bucket_name.map((cat) => (
+                <Badge
+                  key={cat}
+                  variant="secondary"
+                  className={`${CATEGORY_COLORS[cat] || CATEGORY_COLORS.other} text-white border-0 text-xs capitalize`}
+                >
+                  {cat}
+                </Badge>
+              ))}
             </p>
           )}
           {result.duration_ms && (
@@ -132,9 +133,6 @@ export function VideoUploadForm() {
               {(result.duration_ms / 1000).toFixed(1)}s
             </p>
           )}
-          <p className="text-sm text-white/50 break-all">
-            ID: {result.video_id}
-          </p>
         </div>
         <div className="flex gap-3 w-full">
           <Button variant="secondary" className="flex-1" onClick={handleReset}>

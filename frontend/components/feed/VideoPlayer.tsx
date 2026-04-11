@@ -77,7 +77,7 @@ export function VideoPlayer({
       <video
         ref={videoRef}
         src={getVideoUrl(videoId)}
-        className="w-full h-full object-contain md:object-cover md:rounded-lg"
+        className="w-full h-full object-contain"
         loop
         playsInline
         muted={muted}
@@ -119,23 +119,25 @@ export function VideoPlayer({
           e.stopPropagation();
           toggleMute();
         }}
-        className="absolute top-4 right-4 p-2 rounded-full bg-black/40 backdrop-blur-sm text-white/80 hover:text-white transition-colors z-10"
+        className="absolute top-4 right-4 p-2.5 rounded-full bg-black/30 backdrop-blur-md text-white/70 hover:text-white hover:bg-black/50 transition-all duration-200 z-10 border border-white/[0.06]"
         aria-label={muted ? "Unmute" : "Mute"}
       >
         {muted ? (
-          <VolumeX className="w-5 h-5" />
+          <VolumeX className="w-4 h-4" />
         ) : (
-          <Volume2 className="w-5 h-5" />
+          <Volume2 className="w-4 h-4" />
         )}
       </button>
 
       {!isPlaying && !isBuffering && isActive && (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <Play
-            className="w-16 h-16 text-white/50"
-            fill="white"
-            fillOpacity={0.5}
-          />
+          <div className="w-16 h-16 rounded-full bg-black/20 backdrop-blur-sm flex items-center justify-center">
+            <Play
+              className="w-8 h-8 text-white/70 ml-1"
+              fill="white"
+              fillOpacity={0.7}
+            />
+          </div>
         </div>
       )}
     </div>

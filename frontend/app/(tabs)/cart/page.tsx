@@ -29,13 +29,13 @@ export default function CartPage() {
     return (
       <PageTransition>
         <div className="h-full flex items-center justify-center">
-          <div className="flex flex-col items-center gap-4 text-center px-8">
-            <ShoppingCart className="w-16 h-16 text-white/20" />
+          <div className="flex flex-col items-center gap-5 text-center px-8">
+            <ShoppingCart className="w-16 h-16 text-white/10" />
             <div>
-              <p className="text-white/60 text-lg font-medium">
+              <p className="text-white/55 text-lg font-medium">
                 Your cart is empty
               </p>
-              <p className="text-white/40 text-sm mt-1">
+              <p className="text-white/30 text-sm mt-1.5">
                 Browse the shop and add some products!
               </p>
             </div>
@@ -85,13 +85,13 @@ export default function CartPage() {
               return (
                 <div
                   key={item.product.product_id}
-                  className="flex gap-4 p-3 md:p-4 rounded-xl bg-white/5 border border-white/10"
+                  className="flex gap-4 p-3 md:p-4 rounded-xl bg-white/[0.03] border border-white/[0.06] transition-colors hover:bg-white/[0.05]"
                 >
                   <Link
                     href={`/shop/${item.product.product_id}`}
                     className="shrink-0"
                   >
-                    <div className="relative w-20 h-20 md:w-24 md:h-24 rounded-lg overflow-hidden bg-white/5">
+                    <div className="relative w-20 h-20 md:w-24 md:h-24 rounded-lg overflow-hidden bg-white/[0.03]">
                       <Image
                         src={getProductImageUrl(item.product.product_id)}
                         alt={item.product.title}
@@ -107,7 +107,7 @@ export default function CartPage() {
                         href={`/shop/${item.product.product_id}`}
                         className="hover:underline"
                       >
-                        <p className="text-sm font-medium text-white/90 line-clamp-2 leading-tight">
+                        <p className="text-sm font-medium text-white/85 line-clamp-2 leading-tight">
                           {item.product.title}
                         </p>
                       </Link>
@@ -119,7 +119,7 @@ export default function CartPage() {
                           {item.product.bucket_name}
                         </Badge>
                         {item.product.price != null && (
-                          <span className="text-xs font-semibold text-white/70">
+                          <span className="text-xs font-semibold text-white/60">
                             ${item.product.price.toFixed(2)}
                           </span>
                         )}
@@ -135,7 +135,7 @@ export default function CartPage() {
                               item.quantity - 1
                             )
                           }
-                          className="w-7 h-7 rounded-md bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
+                          className="w-7 h-7 rounded-md bg-white/[0.06] hover:bg-white/[0.12] flex items-center justify-center transition-colors"
                         >
                           <Minus className="w-3.5 h-3.5" />
                         </button>
@@ -149,7 +149,7 @@ export default function CartPage() {
                               item.quantity + 1
                             )
                           }
-                          className="w-7 h-7 rounded-md bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
+                          className="w-7 h-7 rounded-md bg-white/[0.06] hover:bg-white/[0.12] flex items-center justify-center transition-colors"
                         >
                           <Plus className="w-3.5 h-3.5" />
                         </button>
@@ -159,7 +159,7 @@ export default function CartPage() {
                           removeFromCart(item.product.product_id);
                           toast.success("Removed from cart");
                         }}
-                        className="p-1.5 rounded-md text-white/40 hover:text-red-400 hover:bg-white/10 transition-colors"
+                        className="p-1.5 rounded-md text-white/30 hover:text-red-400 hover:bg-white/[0.06] transition-colors"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -170,10 +170,10 @@ export default function CartPage() {
             })}
           </div>
 
-          <div className="flex flex-col gap-3 pt-2">
+          <div className="flex flex-col gap-3 pt-4 border-t border-white/[0.06]">
             <div className="flex items-center justify-between px-1">
-              <span className="text-sm text-white/60">Total</span>
-              <span className="text-lg font-bold">
+              <span className="text-sm text-white/50">Total</span>
+              <span className="text-xl font-bold">
                 ${cart.reduce((sum, item) => sum + (item.product.price ?? 0) * item.quantity, 0).toFixed(2)}
               </span>
             </div>
@@ -181,7 +181,7 @@ export default function CartPage() {
               Checkout
               <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
-            <p className="text-xs text-white/30 text-center">
+            <p className="text-xs text-white/25 text-center">
               Checkout is not yet available
             </p>
             <Button variant="secondary" size="sm" className="w-full" asChild>

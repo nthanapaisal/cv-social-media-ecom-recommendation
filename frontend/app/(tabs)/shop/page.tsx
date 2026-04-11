@@ -29,11 +29,13 @@ function ShopContent() {
         />
 
         {hasRecommendations && !selectedCategory && (
-          <div className="max-w-7xl mx-auto flex items-center gap-2 px-4 md:px-6 lg:px-8 py-2">
-            <Sparkles className="w-4 h-4 text-yellow-400" />
-            <span className="text-xs text-white/50">
-              Sorted by your viewing history
-            </span>
+          <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 pt-3 pb-1">
+            <div className="inline-flex items-center gap-2 rounded-full border border-violet-500/20 bg-gradient-to-r from-violet-500/10 to-fuchsia-500/5 px-3.5 py-1.5">
+              <Sparkles className="w-3.5 h-3.5 shrink-0 text-violet-400" />
+              <span className="text-[11px] md:text-xs font-medium text-white/55">
+                Personalized from your feed
+              </span>
+            </div>
           </div>
         )}
 
