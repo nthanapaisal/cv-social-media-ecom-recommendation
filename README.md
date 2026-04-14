@@ -95,6 +95,28 @@ Confidence fusion combines multiple signals into a unified score while reducing 
 
 ## User Interaction
 
+User interactions with videos are measured with watch time, quick skip, and halfway checks. These signals track user engagement and are used to fine tune the backend classification and personalize recommendations of videos and products.
+
+<img src="./resources/interaction.png" alt="drawing" width="600"/>
+
 ## Recommendation System
 
+Recommendation system delivers both video and product recommendations according to a number of signals, engagement scoring, bucket-based weighting, preferred + exploratory mix, other category distribution, and duplicate exclusion
+
+1. Engagement scoring: quick skips are penalized and videos watched past half are rewarded
+2. Bucket-based weighing: aggregate user watch time by category to weigh recommendations
+3. Preferred + exploratory mix: 80% product recs from preferred categories, 70% videos, the remainder are random
+4. Other category distribution: equally distribute watch time from other category videos over all categories
+5. Duplicate exclusion: removes already watched videos from recommendation feed
+
 ## User Study
+
+To verify the results of our video classification system each member of the team watched and labeled the 208 videos according to our 10 categories which we then compare to the output of the models.
+
+<img src="./resources/userstudy.png" alt="drawing" width="600"/>
+
+Overall average: 77.6% agreement with the video classification model based on real world data.
+
+Misclassifications can be attributed to ambiguous videos that fit multiple or none of the categories, noisy video content leading to model confusion, and object detection that focuses on the incorrect objects.
+
+With only 5 signals we're able to achieve a high level of confidence for our video classification system that we believe matches user expectations.
