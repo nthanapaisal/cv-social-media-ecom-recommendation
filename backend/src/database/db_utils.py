@@ -137,6 +137,7 @@ _INTERACTION_COLUMNS = [
     "watch_time_ms",
     "skipped_quickly",
     "watched_50_pct",
+    "interaction_timestamp",
 ]
 
 

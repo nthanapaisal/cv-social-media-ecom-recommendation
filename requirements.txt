@@ -16,5 +16,5 @@ easyocr
 opencv-python
 av
 nltk
-
+scikit-learn
 # Frontend
