@@ -113,7 +113,7 @@ def plot_satisfaction_trend(collector: SurveyCollector):
             markersize=6,
         )
     ax.set_xlabel("Survey #", fontweight="bold")
-    ax.set_ylabel("Satisfaction (1-5)", fontweight="bold")
+    ax.set_ylabel("User overall satisfaction", fontweight="bold", fontsize=10)
     ax.set_title("Satisfaction Trend")
     ax.set_ylim(0.5, 5.5)
     ax.grid(True, alpha=0.3)
@@ -133,8 +133,8 @@ def plot_satisfaction_trend(collector: SurveyCollector):
             markersize=6,
         )
     ax.set_xlabel("Survey #", fontweight="bold")
-    ax.set_ylabel("Relevance (1-5)", fontweight="bold")
-    ax.set_title("Relevance/Quality Trend")
+    ax.set_ylabel("User predicted relevance", fontweight="bold", fontsize=10)
+    ax.set_title("How relevant are the recommendations to your interests?")
     ax.set_ylim(0.5, 5.5)
     ax.grid(True, alpha=0.3)
     ax.legend(fontsize=8)
@@ -153,8 +153,8 @@ def plot_satisfaction_trend(collector: SurveyCollector):
             markersize=6,
         )
     ax.set_xlabel("Survey #", fontweight="bold")
-    ax.set_ylabel("Diversity (1-5)", fontweight="bold")
-    ax.set_title("Diversity Trend")
+    ax.set_ylabel("User predicted diversity", fontweight="bold", fontsize=10)
+    ax.set_title("How diverse / exploratory are these recommendations?")
     ax.set_ylim(0.5, 5.5)
     ax.grid(True, alpha=0.3)
     ax.legend(fontsize=8)
