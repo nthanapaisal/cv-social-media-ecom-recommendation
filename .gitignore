@@ -6,4 +6,3 @@ test
 .env
 venv/
 data/
-datasets/
