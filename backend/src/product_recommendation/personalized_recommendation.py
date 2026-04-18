@@ -76,27 +76,40 @@ def product_recommendation(n_recommended: int = 50) -> pd.DataFrame:
         interactions_with_buckets["bucket_num"] = interactions_with_buckets["bucket_num"].astype(np.int32)
         
         # FEATURE: Distribute "other" category (bucket_num=13) watch time across all other categories
-        # This makes better use of engagement signals from "other" category videos
+        # while retaining a small portion for the "other" category itself.
         other_bucket_id = 13
         other_mask = interactions_with_buckets["bucket_num"] == other_bucket_id
         other_interactions = interactions_with_buckets[other_mask].copy()
         
         if not other_interactions.empty:
-            other_categories = list(range(1, other_bucket_id))  # categories 1-12
-            expanded_rows_list = []
+            # Dynamically fetch all unique categories from products
+            unique_categories = products_df["bucket_num"].dropna().astype(np.int32).unique()
+            other_categories = [cat for cat in unique_categories if cat != other_bucket_id]
             
+            if not other_categories:
+                other_categories = [1]
+                
+            # Define how much weight stays with 'other' (e.g., 20%)
+            retention_ratio = 0.10
+            distribution_ratio = 1.0 - retention_ratio
+                
+            expanded_rows_list = []
             for cat_id in other_categories:
                 expanded = other_interactions.copy()
                 expanded["bucket_num"] = cat_id
-                # Distribute watch_time equally across all other categories
-                expanded["watch_time_ms"] = expanded["watch_time_ms"] / len(other_categories)
+                # Distribute the remaining watch_time equally across other categories
+                expanded["watch_time_ms"] = expanded["watch_time_ms"] * (distribution_ratio / len(other_categories))
                 expanded_rows_list.append(expanded)
             
-            # Combine expanded rows and remove original "other" interactions
-            expanded_df = pd.concat(expanded_rows_list, ignore_index=False)
+            # Keep the original 'other' interactions but reduce their weight
+            reduced_other = other_interactions.copy()
+            reduced_other["watch_time_ms"] = reduced_other["watch_time_ms"] * retention_ratio
+            
+            # Combine expanded rows, reduced 'other' rows, and remove original full-weight "other" interactions
+            expanded_df = pd.concat(expanded_rows_list + [reduced_other], ignore_index=False)
             interactions_with_buckets = interactions_with_buckets[~other_mask]
             interactions_with_buckets = pd.concat([interactions_with_buckets, expanded_df], ignore_index=False)
-
+            
         if interactions_with_buckets.empty:
             # just recommend random products since no proper interaction data
             result = _df_to_records(products_df.sample(min(n_recommended, len(products_df))))
@@ -254,28 +267,47 @@ def video_recommendation(n_recommended: int = 10) -> list[dict]:
         # Explode bucket_num so each bucket gets its own row with the same watch_time
         interactions_with_buckets = interactions_with_buckets.reset_index().explode("bucket_num").set_index("video_id")
         
+        # FIX: Cast to int32 before creating the mask so `== 13` works correctly
+        interactions_with_buckets["bucket_num"] = interactions_with_buckets["bucket_num"].astype(np.int32)
+        
         # FEATURE: Distribute "other" category (bucket_num=13) watch time across all other categories
-        # This makes better use of engagement signals from "other" category videos
+        # while retaining a small portion for the "other" category itself.
         other_bucket_id = 13
         other_mask = interactions_with_buckets["bucket_num"] == other_bucket_id
         other_interactions = interactions_with_buckets[other_mask].copy()
         
         if not other_interactions.empty:
-            other_categories = list(range(1, other_bucket_id))  # categories 1-12
-            expanded_rows_list = []
+            # Dynamically fetch all unique categories from the video catalog
+            unique_categories = videos_df["bucket_num"].explode().dropna().astype(np.int32).unique()
             
+            # Distribute evenly across all available categories EXCEPT 'other' (13)
+            other_categories = [cat for cat in unique_categories if cat != other_bucket_id]
+            
+            # Fallback in case no other categories exist
+            if not other_categories:
+                other_categories = [1]
+                
+            # Define how much weight stays with 'other' (e.g., 10%)
+            retention_ratio = 0.10
+            distribution_ratio = 1.0 - retention_ratio
+                
+            expanded_rows_list = []
             for cat_id in other_categories:
                 expanded = other_interactions.copy()
                 expanded["bucket_num"] = cat_id
-                # Distribute watch_time equally across all other categories
-                expanded["watch_time_ms"] = expanded["watch_time_ms"] / len(other_categories)
+                # Distribute the remaining watch_time equally across other categories
+                expanded["watch_time_ms"] = expanded["watch_time_ms"] * (distribution_ratio / len(other_categories))
                 expanded_rows_list.append(expanded)
             
-            # Combine expanded rows and remove original "other" interactions
-            expanded_df = pd.concat(expanded_rows_list, ignore_index=False)
+            # Keep the original 'other' interactions but reduce their weight
+            reduced_other = other_interactions.copy()
+            reduced_other["watch_time_ms"] = reduced_other["watch_time_ms"] * retention_ratio
+            
+            # Combine expanded rows, reduced 'other' rows, and remove original full-weight "other" interactions
+            expanded_df = pd.concat(expanded_rows_list + [reduced_other], ignore_index=False)
             interactions_with_buckets = interactions_with_buckets[~other_mask]
             interactions_with_buckets = pd.concat([interactions_with_buckets, expanded_df], ignore_index=False)
-        
+
         if interactions_with_buckets.empty:
             return _df_to_records(videos_df.sample(min(n_recommended, len(videos_df))))
 

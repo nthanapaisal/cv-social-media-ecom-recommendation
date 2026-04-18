@@ -16,18 +16,64 @@ from datetime import datetime, timedelta
 import shutil
 import pickle
 
-sys.path.insert(0, str(Path(__file__).parent))
+# Add parent directory to path so we can import backend module
+project_root = Path(__file__).parent.parent
+sys.path.insert(0, str(project_root))
 
 from backend.src.product_recommendation.personalized_recommendation import (
     video_recommendation,
     product_recommendation,
 )
 
-# Configuration
-TEST_DIR = "data/test_interactions"
-VIDEO_PARQUET_DIR = "data/video_parquet"
-CACHE_FILE = ".video_cache.pkl"
+# Configuration (relative to project root)
+TEST_DIR = project_root / "data" / "test_interactions"
+VIDEO_PARQUET_DIR = project_root / "data" / "video_parquet"
+CACHE_FILE = project_root / ".video_cache.pkl"
 
+
+def plot_database_distribution(items_by_category, title, total_categories=13):
+    """Plot the total available items per category in the database."""
+    if not items_by_category:
+        print(f"❌ No data to plot for {title}")
+        return
+    
+    # Determine the range of categories to plot (1 to 13, or higher if data exists)
+    max_cat_in_data = max(items_by_category.keys()) if items_by_category else 0
+    max_cat = max(total_categories, max_cat_in_data)
+    all_cats = list(range(1, max_cat + 1))
+    
+    # Count the total items available in each category
+    counts = [len(items_by_category.get(cat, [])) for cat in all_cats]
+    labels = [f"Cat {cat}" for cat in all_cats]
+    total_items = sum(counts)
+    
+    plt.figure(figsize=(14, 6))
+    # Using a slightly different color map to distinguish from recommendation plots
+    colors = plt.cm.Set3(np.linspace(0, 1, len(all_cats)))
+    bars = plt.bar(labels, counts, color=colors, edgecolor='black', linewidth=1.5)
+    
+    plt.title(title + f" (Total: {total_items})", fontsize=14, fontweight='bold')
+    plt.xlabel('Category', fontsize=12, fontweight='bold')
+    plt.ylabel('Total Items Available', fontsize=12, fontweight='bold')
+    
+    # Add 15% padding to the top so labels don't get cut off
+    max_count = max(counts) if counts else 0
+    plt.ylim(0, max_count * 1.15)
+    
+    for bar, count in zip(bars, counts):
+        height = bar.get_height()
+        if count > 0:
+            plt.text(bar.get_x() + bar.get_width()/2., height,
+                    f'{int(count)}\n({count/total_items*100:.1f}%)',
+                    ha='center', va='bottom', fontweight='bold', fontsize=9)
+    
+    plt.grid(axis='y', alpha=0.3)
+    plt.tight_layout()
+    
+    filename = title.replace(": ", "_").replace(" ", "_").lower() + ".png"
+    plt.savefig(filename, dpi=150, bbox_inches='tight')
+    print(f"✅ Saved: {filename}")
+    plt.show()
 
 def load_videos_by_category() -> dict:
     """
@@ -163,51 +209,48 @@ def monkey_patch_download_interactions():
     return original_download
 
 
-def plot_histogram(categories, title, category_names=None, expected=None):
-    """Plot category histogram"""
+def plot_histogram(categories, title, total_categories=13):
+    """Plot category histogram for products"""
     if not categories:
-        print("❌ No recommendations to plot")
+        print("❌ No products recommended to plot")
         return
     
-    # Count categories
-    unique_cats = sorted(set(categories))
-    counts = [categories.count(cat) for cat in unique_cats]
+    # Force the x-axis to include categories 1 through 13 (or higher if present)
+    max_cat_in_data = max(categories) if categories else 0
+    max_cat = max(total_categories, max_cat_in_data)
+    all_cats = list(range(1, max_cat + 1))
     
-    # Labels
-    if category_names:
-        labels = [f"{category_names.get(cat, f'Cat {cat}')} ({cat})" for cat in unique_cats]
-    else:
-        labels = [f"Category {cat}" for cat in unique_cats]
+    # Count occurrences, defaulting to 0 for missing categories
+    counts = [categories.count(cat) for cat in all_cats]
+    labels = [f"Cat {cat}" for cat in all_cats]  # Shortened label to fit 13 bars nicely
     
-    # Plot
-    plt.figure(figsize=(12, 6))
-    colors = plt.cm.Set3(np.linspace(0, 1, len(unique_cats)))
+    # Made the figure slightly wider to accommodate all 13+ bars
+    plt.figure(figsize=(14, 6))
+    colors = plt.cm.Pastel1(np.linspace(0, 1, len(all_cats)))
     bars = plt.bar(labels, counts, color=colors, edgecolor='black', linewidth=1.5)
     
-    # Styling
     plt.title(title, fontsize=14, fontweight='bold')
-    plt.xlabel('Category', fontsize=12, fontweight='bold')
-    plt.ylabel('Number of Videos Recommended', fontsize=12, fontweight='bold')
+    plt.xlabel('Product Category', fontsize=12, fontweight='bold')
+    plt.ylabel('Number of Products Recommended', fontsize=12, fontweight='bold')
     plt.ylim(0, max(counts) + 5)
     
-    # Add value labels on bars
     for bar, count in zip(bars, counts):
         height = bar.get_height()
-        plt.text(bar.get_x() + bar.get_width()/2., height,
-                f'{int(count)}\n({count/len(categories)*100:.1f}%)',
-                ha='center', va='bottom', fontweight='bold')
+        # Only print the text if the count is greater than 0 to keep the chart clean
+        if count > 0:
+            plt.text(bar.get_x() + bar.get_width()/2., height,
+                    f'{int(count)}\n({count/len(categories)*100:.1f}%)',
+                    ha='center', va='bottom', fontweight='bold', fontsize=9)
     
     plt.grid(axis='y', alpha=0.3)
     plt.tight_layout()
     
-    # Save
     filename = title.replace(": ", "_").replace(" ", "_").lower() + ".png"
     plt.savefig(filename, dpi=150, bbox_inches='tight')
     print(f"✅ Saved: {filename}")
     plt.show()
 
-
-def test_one_category(videos_by_category: dict, category: int = 5):
+def test_one_category(videos_by_category: dict, category: int = 6):
     """
     Test 1: User watches ONLY one category
     Expected: Recommendations heavily weighted toward that category
@@ -255,7 +298,7 @@ def test_one_category(videos_by_category: dict, category: int = 5):
         print(f"⚠️  Category {category} represents {target_count/50*100:.1f}% (expected 70%+)")
 
 
-def test_two_categories_old_and_recent(videos_by_category: dict, old_cat: int = 1, new_cat: int = 2):
+def test_two_categories_old_and_recent(videos_by_category: dict, old_cat: int = 12, new_cat: int = 11):
     """
     Test 2: Recency Weighting
     User watched old_cat 30 days ago, new_cat today
@@ -313,7 +356,7 @@ def test_two_categories_old_and_recent(videos_by_category: dict, old_cat: int = 
         print(f"❌ FAIL: {old_cat}({old_count}) >= {new_cat}({new_count})")
 
 
-def test_scenario_3_engagement_levels(videos_by_category: dict, fullyWatched: int = 6, skippedQuickly: int = 7):
+def test_scenario_3_engagement_levels(videos_by_category: dict, fullyWatched: int = 7, skippedQuickly: int = 5):
     """
     Test 3: Engagement Levels
     Compare skip/watched behavior impact
@@ -385,17 +428,17 @@ def test_scenario_4_balanced_watch(videos_by_category: dict):
     print(f"Expected: Roughly 25% each category in recommendations\n")
     
     # Select 4 categories
-    selected_cats = sorted(list(videos_by_category.keys()))[:4]
+    selected_cats = sorted(list(videos_by_category.keys()))[3:12]
     
-    if len(selected_cats) < 4:
-        print(f"❌ Not enough categories in database (found {len(selected_cats)}, need 4)")
+    if len(selected_cats) < 3:
+        print(f"❌ Not enough categories in database (found {len(selected_cats)}, need 3)")
         return
     
     print(f"Using categories: {selected_cats}\n")
     
-    # Watch 5 videos from each category
+    # Watch 4 videos from each category
     for cat in selected_cats:
-        cat_videos = videos_by_category[cat][:5]
+        cat_videos = videos_by_category[cat][:4]
         for video_id in cat_videos:
             interaction = create_mock_interaction(
                 video_id=video_id,
@@ -482,29 +525,30 @@ def run_all_tests():
         print("❌ No videos found in database. Cannot run tests.")
         return
     
+    plot_database_distribution(videos_by_category, "Database Distribution: Total Videos per Category")
     # Setup
     setup_test_directory()
-    original_download = monkey_patch_download_interactions()
+    monkey_patch_download_interactions()
     
     try:
         # Test 1 - Use category 5 (168 videos) instead of 1 (10 videos) for better variety
-        test_one_category(videos_by_category, category=5)
-        input("\nPress Enter to continue to Test 2...")
+        test_one_category(videos_by_category)
+        
         
         # Test 2 - Use categories with more videos
         setup_test_directory()
-        test_two_categories_old_and_recent(videos_by_category, old_cat=2, new_cat=5)
-        input("\nPress Enter to continue to Test 3...")
+        test_two_categories_old_and_recent(videos_by_category)
+        
         
         # Test 3
         setup_test_directory()
-        test_scenario_3_engagement_levels(videos_by_category, fullyWatched=1, skippedQuickly=3)
-        input("\nPress Enter to continue to Test 4...")
+        test_scenario_3_engagement_levels(videos_by_category)
+        
         
         # Test 4
         setup_test_directory()
         test_scenario_4_balanced_watch(videos_by_category)
-        input("\nPress Enter to continue to Test 5...")
+        
         
         # Test 5
         setup_test_directory()
