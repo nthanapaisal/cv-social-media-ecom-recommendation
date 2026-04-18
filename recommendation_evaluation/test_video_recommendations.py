@@ -31,6 +31,41 @@ VIDEO_PARQUET_DIR = project_root / "data" / "video_parquet"
 CACHE_FILE = project_root / ".video_cache.pkl"
 
 
+def test_actual_user_history_videos(original_download_func):
+    """
+    Runs the recommendation engine using the REAL user interaction data
+    instead of the mock test directory.
+    """
+    print("\n" + "="*70)
+    print("TEST: Actual User History (Videos)")
+    print("="*70)
+    print("Scenario: Generating recommendations using your REAL app usage data. (User interaction parquet)\n")
+    
+    from backend.src.database import db_utils
+    import backend.src.product_recommendation.personalized_recommendation as rec_module
+    
+    # 1. Restore the original download function to hit the real data
+    db_utils.download_user_interactions = original_download_func
+    rec_module.download_user_interactions = original_download_func
+    
+    try:
+        # 2. Get recommendations
+        recs = video_recommendation(n_recommended=50)
+        
+        # 3. Extract categories
+        categories = [rec["bucket_num"][0] if isinstance(rec["bucket_num"], list) else rec["bucket_num"] 
+                      for rec in recs if rec.get("bucket_num")]
+        
+        # 4. Plot
+        plot_histogram(categories, "Actual User History: Video Recommendations")
+        print(f"\n📊 Successfully generated recommendations based on real app usage.")
+        
+    except Exception as e:
+        print(f"❌ Failed to generate real recommendations: {e}")
+    finally:
+        # 5. Re-apply the monkey patch just to leave the environment as we found it
+        monkey_patch_download_interactions()
+
 def plot_database_distribution(items_by_category, title, total_categories=13):
     """Plot the total available items per category in the database."""
     if not items_by_category:
@@ -528,9 +563,11 @@ def run_all_tests():
     plot_database_distribution(videos_by_category, "Database Distribution: Total Videos per Category")
     # Setup
     setup_test_directory()
-    monkey_patch_download_interactions()
+    original_download_function = monkey_patch_download_interactions()
     
     try:
+        # See actual recommendations looking at real user interactions (from user_interaction_parquet)
+        test_actual_user_history_videos(original_download_function)
         # Test 1 - Use category 5 (168 videos) instead of 1 (10 videos) for better variety
         test_one_category(videos_by_category)
         
