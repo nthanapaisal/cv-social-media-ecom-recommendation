@@ -78,10 +78,10 @@ def download_video(video_id: str):
 
 
 def download_video_metadata(video_id: str):
-    df = pd.read_parquet(VIDEO_PARQUET_DIR)
+    df = download_all_videos_metadata()
     row = df[df["video_id"] == video_id]
     if row.empty:
-        raise FileNotFoundError(f"Product metadata {video_id} not found")
+        raise FileNotFoundError(f"Video metadata {video_id} not found")
     result = row.iloc[0].to_dict()
     for k, v in result.items():
         if isinstance(v, np.ndarray):

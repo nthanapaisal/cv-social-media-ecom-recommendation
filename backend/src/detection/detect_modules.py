@@ -67,7 +67,7 @@ def capping_video(base_frames, caption_model, caption_mode="best"):
         # numpy RGB → PIL
         img = Image.fromarray(frame)
 
-        result = caption_model(images=img)
+        result = caption_model(images=img, text="")
 
         caption = result[0]["generated_text"].strip()
 
@@ -89,6 +89,9 @@ def capping_video(base_frames, caption_model, caption_mode="best"):
 
 
 def detect_objects_from_frames(frames, object_detector):
+    if not frames:
+        return []
+
     results = object_detector(frames, verbose=False)
 
     detected = []

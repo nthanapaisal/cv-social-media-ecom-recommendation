@@ -1,5 +1,5 @@
 import json
-from fastapi import UploadFile
+import subprocess
 import numpy as np
 import cv2
 import nltk
@@ -23,9 +23,87 @@ def get_video_duration_ms_from_path(video_path: str) -> int:
 
     cap.release()
 
-    duration_ms = int((frame_count / fps) * 1000)
+    if fps and frame_count:
+        duration_ms = int((frame_count / fps) * 1000)
+        if duration_ms > 0:
+            return duration_ms
 
-    return duration_ms
+    return _get_video_duration_ms_with_ffprobe(video_path)
+
+
+def _get_video_duration_ms_with_ffprobe(video_path: str) -> int:
+    result = subprocess.run(
+        [
+            "ffprobe",
+            "-v",
+            "error",
+            "-show_entries",
+            "format=duration",
+            "-of",
+            "default=noprint_wrappers=1:nokey=1",
+            video_path,
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    duration_seconds = float(result.stdout.strip())
+    return int(duration_seconds * 1000)
+
+
+def _extract_frame_with_ffmpeg(video_path: str, timestamp_seconds: float):
+    result = subprocess.run(
+        [
+            "ffmpeg",
+            "-v",
+            "error",
+            "-ss",
+            f"{timestamp_seconds:.3f}",
+            "-i",
+            video_path,
+            "-frames:v",
+            "1",
+            "-f",
+            "image2pipe",
+            "-vcodec",
+            "mjpeg",
+            "-",
+        ],
+        check=True,
+        capture_output=True,
+    )
+
+    img_array = np.frombuffer(result.stdout, dtype=np.uint8)
+    if img_array.size == 0:
+        return None
+
+    frame_bgr = cv2.imdecode(img_array, cv2.IMREAD_COLOR)
+    if frame_bgr is None:
+        return None
+
+    return cv2.cvtColor(frame_bgr, cv2.COLOR_BGR2RGB)
+
+
+def _get_base_frames_with_ffmpeg(video_path: str, num_frames: int):
+    duration_ms = get_video_duration_ms_from_path(video_path)
+    if duration_ms <= 0:
+        raise ValueError("Video duration could not be determined")
+
+    duration_seconds = duration_ms / 1000
+    sample_end = max(duration_seconds - 0.001, 0.0)
+    timestamps = np.linspace(0.0, sample_end, num_frames)
+
+    frames = []
+    for timestamp in timestamps:
+        try:
+            frame_rgb = _extract_frame_with_ffmpeg(video_path, float(timestamp))
+        except subprocess.CalledProcessError:
+            continue
+
+        if frame_rgb is not None:
+            frames.append(frame_rgb)
+
+    return frames
 
 # extract n frames for uniform sampling
 def get_base_frames(video_path: str, num_frames: int = 10):
@@ -61,7 +139,10 @@ def get_base_frames(video_path: str, num_frames: int = 10):
 
     cap.release()
 
-    return base_frames
+    if base_frames:
+        return base_frames
+
+    return _get_base_frames_with_ffmpeg(video_path, num_frames)
 
 def weighted_fusion(all_signal_outputs):
     scores = {}
