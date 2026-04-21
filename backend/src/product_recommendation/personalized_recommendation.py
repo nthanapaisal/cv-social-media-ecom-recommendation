@@ -3,7 +3,7 @@ import pandas as pd
 import time
 from backend.src.database.db_utils import download_all_videos_metadata, download_all_products_metadata,  download_user_interactions
 import numpy as np
-
+from datetime import datetime
 
 def _df_to_records(df: pd.DataFrame) -> list[dict]:
     """Convert DataFrame to records replacing all NA/NaN variants with None for JSON safety."""
@@ -74,7 +74,42 @@ def product_recommendation(n_recommended: int = 50) -> pd.DataFrame:
         # After explode: each video-bucket pair gets attributed the full watch_time
         interactions_with_buckets = interactions_with_buckets.reset_index().explode("bucket_num").set_index("video_id")
         interactions_with_buckets["bucket_num"] = interactions_with_buckets["bucket_num"].astype(np.int32)
-
+        
+        # FEATURE: Distribute "other" category (bucket_num=13) watch time across all other categories
+        # while retaining a small portion for the "other" category itself.
+        other_bucket_id = 13
+        other_mask = interactions_with_buckets["bucket_num"] == other_bucket_id
+        other_interactions = interactions_with_buckets[other_mask].copy()
+        
+        if not other_interactions.empty:
+            # Dynamically fetch all unique categories from products
+            unique_categories = products_df["bucket_num"].dropna().astype(np.int32).unique()
+            other_categories = [cat for cat in unique_categories if cat != other_bucket_id]
+            
+            if not other_categories:
+                other_categories = [1]
+                
+            # Define how much weight stays with 'other' (e.g., 20%)
+            retention_ratio = 0.10
+            distribution_ratio = 1.0 - retention_ratio
+                
+            expanded_rows_list = []
+            for cat_id in other_categories:
+                expanded = other_interactions.copy()
+                expanded["bucket_num"] = cat_id
+                # Distribute the remaining watch_time equally across other categories
+                expanded["watch_time_ms"] = expanded["watch_time_ms"] * (distribution_ratio / len(other_categories))
+                expanded_rows_list.append(expanded)
+            
+            # Keep the original 'other' interactions but reduce their weight
+            reduced_other = other_interactions.copy()
+            reduced_other["watch_time_ms"] = reduced_other["watch_time_ms"] * retention_ratio
+            
+            # Combine expanded rows, reduced 'other' rows, and remove original full-weight "other" interactions
+            expanded_df = pd.concat(expanded_rows_list + [reduced_other], ignore_index=False)
+            interactions_with_buckets = interactions_with_buckets[~other_mask]
+            interactions_with_buckets = pd.concat([interactions_with_buckets, expanded_df], ignore_index=False)
+            
         if interactions_with_buckets.empty:
             # just recommend random products since no proper interaction data
             result = _df_to_records(products_df.sample(min(n_recommended, len(products_df))))
@@ -95,6 +130,22 @@ def product_recommendation(n_recommended: int = 50) -> pd.DataFrame:
         engagement_scores = watch_times.copy()
         engagement_scores[skipped] *= 0.1
         engagement_scores[watched_half] *= 1.5
+        
+        # Recency weighting: exponential decay with 7-day half-life
+        now = datetime.now()
+        if 'interaction_timestamp' in interactions_with_buckets.columns:
+            try:
+                timestamps = interactions_with_buckets['interaction_timestamp']
+                days_ago = np.array([(now - pd.to_datetime(ts)).days for ts in timestamps])
+                recency_decay = np.exp(-days_ago / 7)
+                engagement_scores *= recency_decay
+            except Exception as e:
+                # If timestamp parsing fails, use all interactions with equal weight
+                print(f"Warning: Could not apply recency weighting: {e}")
+        else:
+            # Backward compatibility: interactions without timestamp column
+            # Treat old interactions as if they're 30 days old (low weight)
+            print("Warning: 'interaction_timestamp' column not found. Using uniform weights.")
 
         products_bucket_num_max = products_df["bucket_num"].astype(np.int32).max()
         max_bucket_id= int(max(buckets_watched.max(), products_bucket_num_max)) + 1
@@ -204,8 +255,6 @@ def video_recommendation(n_recommended: int = 10) -> list[dict]:
     user_interactions_df = download_user_interactions()
 
     try:
-        
-
         # Step 1: Fallback if user has no interactions yet
         if user_interactions_df.empty:
             return _df_to_records(videos_df.sample(min(n_recommended, len(videos_df))))
@@ -217,6 +266,48 @@ def video_recommendation(n_recommended: int = 10) -> list[dict]:
         interactions_with_buckets = ui_df.join(v_df).dropna(subset=["bucket_num"])
         # Explode bucket_num so each bucket gets its own row with the same watch_time
         interactions_with_buckets = interactions_with_buckets.reset_index().explode("bucket_num").set_index("video_id")
+        
+        # FIX: Cast to int32 before creating the mask so `== 13` works correctly
+        interactions_with_buckets["bucket_num"] = interactions_with_buckets["bucket_num"].astype(np.int32)
+        
+        # FEATURE: Distribute "other" category (bucket_num=13) watch time across all other categories
+        # while retaining a small portion for the "other" category itself.
+        other_bucket_id = 13
+        other_mask = interactions_with_buckets["bucket_num"] == other_bucket_id
+        other_interactions = interactions_with_buckets[other_mask].copy()
+        
+        if not other_interactions.empty:
+            # Dynamically fetch all unique categories from the video catalog
+            unique_categories = videos_df["bucket_num"].explode().dropna().astype(np.int32).unique()
+            
+            # Distribute evenly across all available categories EXCEPT 'other' (13)
+            other_categories = [cat for cat in unique_categories if cat != other_bucket_id]
+            
+            # Fallback in case no other categories exist
+            if not other_categories:
+                other_categories = [1]
+                
+            # Define how much weight stays with 'other' (e.g., 10%)
+            retention_ratio = 0.10
+            distribution_ratio = 1.0 - retention_ratio
+                
+            expanded_rows_list = []
+            for cat_id in other_categories:
+                expanded = other_interactions.copy()
+                expanded["bucket_num"] = cat_id
+                # Distribute the remaining watch_time equally across other categories
+                expanded["watch_time_ms"] = expanded["watch_time_ms"] * (distribution_ratio / len(other_categories))
+                expanded_rows_list.append(expanded)
+            
+            # Keep the original 'other' interactions but reduce their weight
+            reduced_other = other_interactions.copy()
+            reduced_other["watch_time_ms"] = reduced_other["watch_time_ms"] * retention_ratio
+            
+            # Combine expanded rows, reduced 'other' rows, and remove original full-weight "other" interactions
+            expanded_df = pd.concat(expanded_rows_list + [reduced_other], ignore_index=False)
+            interactions_with_buckets = interactions_with_buckets[~other_mask]
+            interactions_with_buckets = pd.concat([interactions_with_buckets, expanded_df], ignore_index=False)
+
         if interactions_with_buckets.empty:
             return _df_to_records(videos_df.sample(min(n_recommended, len(videos_df))))
 
@@ -231,6 +322,22 @@ def video_recommendation(n_recommended: int = 10) -> list[dict]:
         engagement_scores = watch_times.copy()
         engagement_scores[skipped] *= 0.1
         engagement_scores[watched_half] *= 1.5
+        
+        # Recency weighting: exponential decay with 7-day half-life
+        now = datetime.now()
+        if 'interaction_timestamp' in interactions_with_buckets.columns:
+            try:
+                timestamps = interactions_with_buckets['interaction_timestamp']
+                days_ago = np.array([(now - pd.to_datetime(ts)).days for ts in timestamps])
+                recency_decay = np.exp(-days_ago / 7)
+                engagement_scores *= recency_decay
+            except Exception as e:
+                # If timestamp parsing fails, use all interactions with equal weight
+                print(f"Warning: Could not apply recency weighting: {e}")
+        else:
+            # Backward compatibility: interactions without timestamp column
+            # Treat old interactions as if they're 30 days old (low weight)
+            print("Warning: 'interaction_timestamp' column not found. Using uniform weights.")
 
         # determining max bucket id across all exploded video buckets for the category watch frequency array
         vid_bucket_num_max = videos_df["bucket_num"].explode().astype(np.int32).max()

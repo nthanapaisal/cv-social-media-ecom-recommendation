@@ -12,3 +12,7 @@ yolo11n.pt
 launch.json
 .dockerignore
 datasets/
+ALGORITHMIC_INSIGHTS.md
+*.png
+RECENCY_WEIGHTING_GUIDE.md
+*.pkl

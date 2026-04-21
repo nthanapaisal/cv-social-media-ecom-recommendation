@@ -1,8 +1,11 @@
 import io
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
 from enum import Enum
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
+from typing import Optional, List
 from transformers import pipeline
 from PIL import Image
 import uuid
@@ -14,6 +17,8 @@ from backend.src.backend_base_services import upload_video_service, upload_produ
     get_product_by_id_service, get_product_metadata_by_id_service, get_products_by_category_service, \
     update_user_interaction_service, get_feed_service, get_shop_service
 from backend.src.product_recommendation.personalized_recommendation import _products_recommendation_cache
+from survey_framework import SurveyCollector, RecommendationSurveyResponse
+from datetime import datetime
 
 
 app = FastAPI()
@@ -28,6 +33,15 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request, exc):
+    print(f"DEBUG: Validation error: {exc}")
+    print(f"DEBUG: Request body: {await request.body()}")
+    return JSONResponse(
+        status_code=422,
+        content={"detail": exc.errors(), "body": str(exc)},
+    )
 
 class VideoUploadRequest(BaseModel):
     description: str
@@ -83,7 +97,7 @@ def startup():
     )
 
     app.state.caption_model = pipeline(
-        task="image-to-text",
+        task="image-text-to-text",
         model="Salesforce/blip-image-captioning-base",
         device=-1  # CPU
     ) 
@@ -250,3 +264,57 @@ def refresh_shop():
         return {"status": "completed"}
     except Exception as e:
         raise HTTPException(status_code = 500, detail = f"refresh shop failed {str(e)}")
+
+
+class SurveySubmission(BaseModel):
+    """Survey response from frontend"""
+    user_id: str
+    recommendation_id: str
+    items_shown: List[str]
+    # 1-5 Scale Questions
+    serendipity_rating: int  # How relevant were recommendations?
+    diversity_rating: int  # How diverse were recommendations?
+    satisfaction_rating: int  # Overall happiness with recommendations?
+    # 1-10 Scale Question
+    preference_vs_exploration: int  # 1=More preferred, 10=More random exploration
+
+
+# Initialize survey collector
+_survey_collector = SurveyCollector("production")
+
+
+@app.post("/api/surveys")
+def submit_survey(survey_data: SurveySubmission):
+    """
+    Collect user feedback on recommendations.
+    Called by frontend after user rates recommendations.
+    """
+    try:
+        print(f"DEBUG: Received survey data: {survey_data}")
+        response = RecommendationSurveyResponse(
+            user_id=survey_data.user_id,
+            recommendation_id=survey_data.recommendation_id,
+            items_shown=survey_data.items_shown,
+            timestamp=datetime.now().isoformat(),
+            serendipity_rating=survey_data.serendipity_rating,
+            diversity_rating=survey_data.diversity_rating,
+            satisfaction_rating=survey_data.satisfaction_rating,
+            preference_vs_exploration=survey_data.preference_vs_exploration,
+        )
+        
+        _survey_collector.add_response(response)
+        
+        # Get updated statistics
+        stats = _survey_collector.get_summary_stats()
+        
+        print(f"DEBUG: Survey submitted successfully. Stats: {stats}")
+        return {
+            "status": "success",
+            "message": "Survey response recorded",
+            "stats": stats
+        }
+    except Exception as e:
+        print(f"DEBUG: Survey submission error: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Survey submission failed: {str(e)}")

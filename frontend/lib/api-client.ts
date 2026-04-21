@@ -136,7 +136,7 @@ export async function logInteraction(
 }
 
 export async function fetchShopProducts(
-  numProducts = 20,
+  numProducts = 50,
 ): Promise<ProductMetadata[]> {
   try {
     const res = await fetch(

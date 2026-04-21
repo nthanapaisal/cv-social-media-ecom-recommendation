@@ -1,16 +1,42 @@
 "use client";
 
-import { useCallback, useRef, useEffect } from "react";
+import { useCallback, useRef, useEffect, useState, useMemo } from "react";
 import { useVideoFeed } from "@/hooks/use-video-feed";
+import { useRecommendationTracker } from "@/hooks/use-recommendation-tracker";
+import { SurveyModal } from "@/components/ui/survey-modal";
 import { VideoCard } from "./VideoCard";
 import { Loader2, VideoOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 
+const SURVEY_THRESHOLD = 5; // Show survey every 5 loadMore calls
+
 export function VideoFeed() {
   const { videos, isLoading, isError, loadMore, isFetchingMore, refetch } =
     useVideoFeed();
   const sentinelRef = useRef<HTMLDivElement>(null);
+  const [showSurvey, setShowSurvey] = useState(false);
+  const [userId] = useState(() => {
+    // Generate or retrieve user ID (stored in localStorage)
+    if (typeof window === "undefined") return "unknown";
+    const stored = localStorage.getItem("user_id");
+    if (stored) return stored;
+    const newId = `user_${Date.now()}`;
+    localStorage.setItem("user_id", newId);
+    return newId;
+  });
+
+  const tracker = useRecommendationTracker(SURVEY_THRESHOLD);
+
+  // Generate a unique ID for this recommendation batch  
+  const currentRecommendationId = useMemo(() => {
+    return `rec_${tracker.cycleCount}_${Date.now()}`;
+  }, [tracker.cycleCount]);
+
+  // Extract current video IDs being displayed
+  const currentVideoIds = useMemo(() => {
+    return videos.map((v) => v.video_id);
+  }, [videos]);
 
   useEffect(() => {
     const sentinel = sentinelRef.current;
@@ -18,14 +44,25 @@ export function VideoFeed() {
 
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting) loadMore();
+        if (entry.isIntersecting) {
+          loadMore();
+          // Record this recommendation cycle
+          tracker.recordCycle(currentVideoIds);
+        }
       },
       { rootMargin: "200%" }
     );
 
     observer.observe(sentinel);
     return () => observer.disconnect();
-  }, [loadMore]);
+  }, [loadMore, tracker, currentVideoIds]);
+
+  // Show survey when threshold is reached
+  useEffect(() => {
+    if (tracker.shouldShowSurvey) {
+      setShowSurvey(true);
+    }
+  }, [tracker.shouldShowSurvey]);
 
   const handleCardVisible = useCallback(
     (index: number) => {
@@ -35,6 +72,10 @@ export function VideoFeed() {
     },
     [videos.length, loadMore]
   );
+
+  const handleSurveySubmit = () => {
+    tracker.resetCycle();
+  };
 
   if (isLoading) {
     return (
@@ -81,6 +122,14 @@ export function VideoFeed() {
 
   return (
     <div className="h-full min-h-0 bg-black md:flex md:items-center md:justify-center md:py-3">
+      <SurveyModal
+        open={showSurvey}
+        onOpenChange={setShowSurvey}
+        userId={userId}
+        recommendationId={currentRecommendationId}
+        itemsShown={tracker.recommendationIds}
+        onSubmit={handleSurveySubmit}
+      />
       {/* Desktop: md:py-3 inset; width uses usable height (viewport − top bar − vertical inset) × 9/16 */}
       <div className="h-full w-full md:h-auto md:w-[min(100%,calc((100dvh-3.5rem-1.5rem)*9/16))] md:aspect-[9/16] md:rounded-2xl md:border md:border-white/[0.06] md:overflow-hidden flex-shrink-0">
         <div className="h-full overflow-y-scroll snap-y snap-mandatory scrollbar-hide">
