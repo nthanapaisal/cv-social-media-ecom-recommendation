@@ -6,19 +6,32 @@ Supakjeera Thanapaisal, Suraj Jayakumar, Bryan Smith, Joel Jacob Stephen
 
 ## Description
 
-{name} is a full stack application that demonstrates an end-to-end multi-modal social media feed and e-commerce recommendation system.
+VisCart is a full stack application that demonstrates an end-to-end multi-modal social media feed and e-commerce recommendation system.
 
 We use computer vision to integrate short-form video content with personalized product recommendations through a number of modalities including visual features, textual signal, and semantic descriptions.
 
 ## How to Run
 
-### Backend
+### Required Data
+
+Product data
+- ```cv-social-media-ecom-recommendation/data/products``` - product images
+- ```cv-social-media-ecom-recommendation/data/products_parquet``` - parquet files
+
+Videos
+- ```cv-social-media-ecom-recommendation/data/videos``` - video files
+- ```cv-social-media-ecom-recommendation/data/video_parquet``` - parquet files
+
+The corresponding parquet files for either products or videos can be generated using
+- ```cv-social-media-ecom-recommendation/scripts/preprocess_products.py```
+- ```cv-social-media-ecom-recommendation/scripts/preprocess_videos.py```
+
+### Full stack - Docker Compose
 
 ```cd cv-social-media-ecom-recommendation```<br>
-```docker build -t cv-ecomm-rec-api```<br>
-```docker run -p 127.0.0.1:8000:8000 cv-ecomm-rec-api```
-
-### Frontend
+```docker compose up --build```<br>
+- Backend API - http://127.0.0.1:8000/docs
+- Frontend App - http://127.0.0.1:3000
 
 ## Architecture
 
