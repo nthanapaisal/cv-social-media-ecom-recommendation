@@ -65,13 +65,18 @@ def upload_video_service(
         description_signal_bucket, description_zeroshot_conf = zero_shot_classification(bart_mnli, list(BUCKETS["buckets"].keys()), video_metadata["caption"])
         all_signal_outputs_list.append(("description", description_signal_bucket, description_zeroshot_conf))
 
-        # SIGNAL 4: Capptioning video
-        vid_caption = capping_video(base_frames, caption_model)
-        print(f"Raw_vid_caption: {vid_caption}") 
-
-        # SIGNAL 4: Zeroshot on vid capping
-        vid_caption_bucket, vid_caption_conf = zero_shot_classification(bart_mnli, list(BUCKETS["buckets"].keys()), vid_caption)
-        all_signal_outputs_list.append(("vid_caption", vid_caption_bucket, vid_caption_conf))
+        # SIGNAL 4: Captioning video.
+        try:
+            vid_caption = capping_video(base_frames, caption_model)
+            print(f"Raw_vid_caption: {vid_caption}")
+            vid_caption_bucket, vid_caption_conf = zero_shot_classification(
+                bart_mnli,
+                list(BUCKETS["buckets"].keys()),
+                vid_caption,
+            )
+            all_signal_outputs_list.append(("vid_caption", vid_caption_bucket, vid_caption_conf))
+        except Exception as caption_error:
+            logger.warning("Video captioning skipped for %s: %s", vid_id, caption_error)
 
         # SIGNAL 5: Object Detection
         detected_objects = detect_objects_from_frames(base_frames, object_detector)

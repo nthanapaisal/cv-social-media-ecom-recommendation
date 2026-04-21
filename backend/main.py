@@ -100,7 +100,7 @@ def startup():
         task="image-text-to-text",
         model="Salesforce/blip-image-captioning-base",
         device=-1  # CPU
-    ) 
+    )
 
     app.state.object_detector = YOLO("yolo11n.pt")
 
