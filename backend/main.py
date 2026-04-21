@@ -97,7 +97,7 @@ def startup():
     )
 
     app.state.caption_model = pipeline(
-        task="image-to-text",
+        task="image-text-to-text",
         model="Salesforce/blip-image-captioning-base",
         device=-1  # CPU
     )
