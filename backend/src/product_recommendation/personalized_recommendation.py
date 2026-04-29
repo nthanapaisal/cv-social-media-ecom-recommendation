@@ -12,6 +12,8 @@ def _df_to_records(df: pd.DataFrame) -> list[dict]:
         for rec in df.to_dict(orient="records")
     ]
 
+# Number of video categories user needs to watch until they get 80% preferred products and 70% preferred videos. (Represents the usual total number of categories the average user is interested in)
+PROFILE_SATURATION_POINT = 4.0
 
 # caching product recommendations
 _products_recommendation_cache = {"data": None, "timestamp": 0, "ttl": 300, "n_recommended": 20}
@@ -184,8 +186,18 @@ def product_recommendation(n_recommended: int = 50) -> pd.DataFrame:
         # normalizing because need a normalized value between 0 and 1 for np random choice sampling
         bucket_weights = bucket_weights.astype(np.float32)
         bucket_weights = bucket_weights / np.sum(bucket_weights)
-        # 80-20 split preferred and random
-        n_preferred = int(n_recommended * 0.8)
+        # --- Dynamic Exploration Warm-up ---
+        # Calculate how many unique categories the user actually prefers
+        n_unique_prefs = len(preferred_buckets)
+        
+        # Base split is 80-20, but scales down if they've seen very few categories
+        # e.g., 1 category = 20% preferred, 2 = 40%, 3 = 60%, 4+ = 80%
+        target_preferred_ratio = 0.80
+        warmup_factor = min(1.0, n_unique_prefs / PROFILE_SATURATION_POINT) 
+        dynamic_ratio = target_preferred_ratio * warmup_factor
+        
+        n_preferred = int(n_recommended * dynamic_ratio)
+        # ----------------------------------------
 
         n_preferred_capped = min(n_preferred, len(preferred_products_df))
         preferred_indices = np.random.choice(
@@ -353,7 +365,7 @@ def video_recommendation(n_recommended: int = 10) -> list[dict]:
             # edge case: user literally watched every video in the database. So just give them random watched videos
             return _df_to_records(videos_df.sample(min(n_recommended, len(videos_df))))
         
-        # REFACTORED: Explode unwatched_videos_df so each bucket gets its own row
+        # Explode unwatched_videos_df so each bucket gets its own row
         # This allows proper filtering since unwatched_videos_df has bucket_num as lists (not single values)
         # After explode: can safely convert bucket_num to int32 and index into bucket_watch_frequency_array
         unwatched_videos_df = unwatched_videos_df.reset_index().explode("bucket_num").set_index("video_id")
@@ -363,9 +375,12 @@ def video_recommendation(n_recommended: int = 10) -> list[dict]:
         unwatched_buckets = unwatched_videos_df["bucket_num"].values.astype(np.int32)
         preferred_mask = bucket_watch_frequency_array[unwatched_buckets] > 0
 
-        # REFACTORED: Reset index to make video_id a column before filtering
+        # Reset index to make video_id a column before filtering
         # This preserves video_id as a column for later operations
         unwatched_videos_df = unwatched_videos_df.reset_index(drop=False)
+        # NEW: Count unique preferred categories for dynamic scaling of relevant vs random video recommendation
+        n_unique_prefs = np.count_nonzero(bucket_watch_frequency_array > 0)
+
         
         # only keeping unwatched videos whose category has been watched by the user before
         preferred_vids_df = unwatched_videos_df[preferred_mask]
@@ -377,8 +392,17 @@ def video_recommendation(n_recommended: int = 10) -> list[dict]:
         # Drop duplicates to get unique videos (since explode created multiple rows per video with different buckets)
         preferred_vids_df = preferred_vids_df.drop_duplicates(subset=["video_id"])
         
-        # Step 6: 70% preferred videos sampled weighted using bucket interaction frequency.
-        n_preferred = int(n_recommended * 0.7)
+        # Step 6: Preferred videos sampled weighted using bucket interaction frequency.
+        # slowly increase the ratio of preferred videos recommended as we watch more categories
+        # fixing issue where when app is started fresh with no interactions, the moment a user sees their first video, All subsequent product recommendations are 80% from that category and all subsequent video recommendations are 70% from that one category, since that is the only preferred category.
+
+        # To fix this we slowly ramp up the percentage of preferred content recommended as a function of number of unique categories the user watched.
+
+        # If the user watched videos from over 3 unique categories recommendation split is back to normal (70% for videos, 30% for products)
+        target_preferred_ratio = 0.7
+        warmup_factor = min(1.0, n_unique_prefs / PROFILE_SATURATION_POINT)
+        dynamic_ratio = target_preferred_ratio * warmup_factor
+        n_preferred = int(n_recommended * dynamic_ratio)
         # making sure the number of preferred videos we recommend does not exceed the number of those preferred videos available
         n_preferred_capped = min(n_preferred, len(preferred_vids_df))
 

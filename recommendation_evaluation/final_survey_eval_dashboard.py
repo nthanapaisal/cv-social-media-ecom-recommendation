@@ -86,8 +86,8 @@ def display_overall_stats():
 
 
 def plot_satisfaction_trend(collector: SurveyCollector):
-    """Plot satisfaction trend over time"""
-    print_header("PLOTTING SATISFACTION TREND", "─")
+    """Plot satisfaction trends over time in separate graphs"""
+    print_header("PLOTTING SATISFACTION TRENDS", "─")
 
     satisfaction_df = collector.get_satisfaction_trend()
     if satisfaction_df.empty:
@@ -96,15 +96,17 @@ def plot_satisfaction_trend(collector: SurveyCollector):
 
     # Group by user
     users = satisfaction_df["user_id"].unique()
+    
+    # Helper for consistent x-axis ticks
+    x_ticks = range(1, len(satisfaction_df) + 1, max(1, len(satisfaction_df) // 10))
 
-    fig, axes = plt.subplots(2, 2, figsize=(14, 10))
-    fig.suptitle("Recommendation System Trends Over Time", fontsize=16, fontweight="bold")
-
+    # ---------------------------------------------------------
     # Plot 1: Satisfaction over time (per user)
-    ax = axes[0, 0]
+    # ---------------------------------------------------------
+    plt.figure(figsize=(10, 6))
     for user_id in users:
         user_data = satisfaction_df[satisfaction_df["user_id"] == user_id]
-        ax.plot(
+        plt.plot(
             user_data["survey_number"],
             user_data["satisfaction"],
             marker="o",
@@ -112,19 +114,25 @@ def plot_satisfaction_trend(collector: SurveyCollector):
             linewidth=2,
             markersize=6,
         )
-    ax.set_xlabel("Survey #", fontweight="bold")
-    ax.set_ylabel("User overall satisfaction", fontweight="bold", fontsize=10)
-    ax.set_title("Satisfaction Trend")
-    ax.set_ylim(0.5, 5.5)
-    ax.grid(True, alpha=0.3)
-    ax.legend(fontsize=8)
-    ax.set_xticks(range(1, len(satisfaction_df) + 1, max(1, len(satisfaction_df) // 10)))
+    plt.xlabel("Survey #", fontweight="bold")
+    plt.ylabel("User overall satisfaction", fontweight="bold", fontsize=10)
+    plt.title("Satisfaction Trend", fontsize=14, fontweight="bold")
+    plt.ylim(0.5, 5.5)
+    plt.grid(True, alpha=0.3)
+    plt.legend(fontsize=8)
+    plt.xticks(x_ticks)
+    plt.tight_layout()
+    plt.savefig("satisfaction_trend.png", dpi=150, bbox_inches="tight")
+    plt.close()
+    print("  ✅ Saved: satisfaction_trend.png")
 
+    # ---------------------------------------------------------
     # Plot 2: Relevance trend
-    ax = axes[0, 1]
+    # ---------------------------------------------------------
+    plt.figure(figsize=(10, 6))
     for user_id in users:
         user_data = satisfaction_df[satisfaction_df["user_id"] == user_id]
-        ax.plot(
+        plt.plot(
             user_data["survey_number"],
             user_data["serendipity"],
             marker="s",
@@ -132,19 +140,25 @@ def plot_satisfaction_trend(collector: SurveyCollector):
             linewidth=2,
             markersize=6,
         )
-    ax.set_xlabel("Survey #", fontweight="bold")
-    ax.set_ylabel("User predicted relevance", fontweight="bold", fontsize=10)
-    ax.set_title("How relevant are the recommendations to your interests?")
-    ax.set_ylim(0.5, 5.5)
-    ax.grid(True, alpha=0.3)
-    ax.legend(fontsize=8)
-    ax.set_xticks(range(1, len(satisfaction_df) + 1, max(1, len(satisfaction_df) // 10)))
+    plt.xlabel("Survey #", fontweight="bold")
+    plt.ylabel("User predicted relevance", fontweight="bold", fontsize=10)
+    plt.title("How relevant are the recommendations to your interests?", fontsize=14, fontweight="bold")
+    plt.ylim(0.5, 5.5)
+    plt.grid(True, alpha=0.3)
+    plt.legend(fontsize=8)
+    plt.xticks(x_ticks)
+    plt.tight_layout()
+    plt.savefig("relevance_trend.png", dpi=150, bbox_inches="tight")
+    plt.close()
+    print("  ✅ Saved: relevance_trend.png")
 
+    # ---------------------------------------------------------
     # Plot 3: Diversity trend
-    ax = axes[1, 0]
+    # ---------------------------------------------------------
+    plt.figure(figsize=(10, 6))
     for user_id in users:
         user_data = satisfaction_df[satisfaction_df["user_id"] == user_id]
-        ax.plot(
+        plt.plot(
             user_data["survey_number"],
             user_data["diversity"],
             marker="^",
@@ -152,21 +166,27 @@ def plot_satisfaction_trend(collector: SurveyCollector):
             linewidth=2,
             markersize=6,
         )
-    ax.set_xlabel("Survey #", fontweight="bold")
-    ax.set_ylabel("User predicted diversity", fontweight="bold", fontsize=10)
-    ax.set_title("How diverse / exploratory are these recommendations?")
-    ax.set_ylim(0.5, 5.5)
-    ax.grid(True, alpha=0.3)
-    ax.legend(fontsize=8)
-    ax.set_xticks(range(1, len(satisfaction_df) + 1, max(1, len(satisfaction_df) // 10)))
+    plt.xlabel("Survey #", fontweight="bold")
+    plt.ylabel("User predicted diversity", fontweight="bold", fontsize=10)
+    plt.title("How diverse / exploratory are these recommendations?", fontsize=14, fontweight="bold")
+    plt.ylim(0.5, 5.5)
+    plt.grid(True, alpha=0.3)
+    plt.legend(fontsize=8)
+    plt.xticks(x_ticks)
+    plt.tight_layout()
+    plt.savefig("diversity_trend.png", dpi=150, bbox_inches="tight")
+    plt.close()
+    print("  ✅ Saved: diversity_trend.png")
 
+    # ---------------------------------------------------------
     # Plot 4: Moving average of satisfaction (smoothed)
-    ax = axes[1, 1]
+    # ---------------------------------------------------------
+    plt.figure(figsize=(10, 6))
     for user_id in users:
         user_data = satisfaction_df[satisfaction_df["user_id"] == user_id].copy()
         # 3-point moving average
         user_data["satisfaction_ma"] = user_data["satisfaction"].rolling(window=3, center=True).mean()
-        ax.plot(
+        plt.plot(
             user_data["survey_number"],
             user_data["satisfaction_ma"],
             marker="D",
@@ -174,18 +194,17 @@ def plot_satisfaction_trend(collector: SurveyCollector):
             linewidth=2,
             markersize=6,
         )
-    ax.set_xlabel("Survey #", fontweight="bold")
-    ax.set_ylabel("Satisfaction (smooth)", fontweight="bold")
-    ax.set_title("Smoothed Satisfaction Trend (3-point MA)")
-    ax.set_ylim(0.5, 5.5)
-    ax.grid(True, alpha=0.3)
-    ax.legend(fontsize=8)
-    ax.set_xticks(range(1, len(satisfaction_df) + 1, max(1, len(satisfaction_df) // 10)))
-
+    plt.xlabel("Survey #", fontweight="bold")
+    plt.ylabel("Satisfaction (smooth)", fontweight="bold")
+    plt.title("Smoothed Satisfaction Trend (3-point MA)", fontsize=14, fontweight="bold")
+    plt.ylim(0.5, 5.5)
+    plt.grid(True, alpha=0.3)
+    plt.legend(fontsize=8)
+    plt.xticks(x_ticks)
     plt.tight_layout()
-    plt.savefig("survey_trends.png", dpi=150, bbox_inches="tight")
-    print(f"  ✅ Saved: survey_trends.png\n")
+    plt.savefig("smoothed_satisfaction_trend.png", dpi=150, bbox_inches="tight")
     plt.close()
+    print("  ✅ Saved: smoothed_satisfaction_trend.png\n")
 
 
 def plot_preference_exploration(collector: SurveyCollector):
@@ -299,7 +318,7 @@ def generate_report():
      • Submit surveys to build statistical significance
      
   2️⃣  MONITOR TRENDS:
-     • Check satisfaction_trends.png for overall satisfaction
+     • Check the separate generated trend files for overall satisfaction, serendipity, and diversity
      • Check preference_exploration_trend.png to see if users want:
        - More from their preferred categories (low scores ~1-3)
        - More random exploration (high scores ~7-10)
@@ -322,8 +341,11 @@ def generate_report():
      >>> collector.export_to_csv()
      
   📊 GENERATED FILES:
-     - survey_trends.png: Shows satisfaction, serendipity, diversity over time
-     - preference_exploration_trend.png: Shows balance of recommended vs exploratory items
+     - satisfaction_trend.png: Overall satisfaction score per survey
+     - relevance_trend.png: Perceived relevance to user interests
+     - diversity_trend.png: Perceived exploration diversity
+     - smoothed_satisfaction_trend.png: 3-point moving average of satisfaction
+     - preference_exploration_trend.png: Balance of recommended vs exploratory items
 """)
 
     print_header("DATA LOCATION", "─")

@@ -19,6 +19,37 @@ import pickle
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
+def test_recency_post_warmup(videos_by_category, old_cat=6, new_cat=2, other_cats=[1, 3, 4]):
+    old_name = CATEGORY_NAMES.get(old_cat, f"Category {old_cat}")
+    new_name = CATEGORY_NAMES.get(new_cat, f"Category {new_cat}")
+    print("\n" + "="*70)
+    print(f"TEST: Recency Bias + Post-Warmup ({new_name} vs {old_name})")
+    print("="*70)
+    print(f"Scenario: 5 '{old_name}' videos watched 7 days ago. 10 '{new_name}' videos watched TODAY.")
+    print(f"Plus 1 video from 3 other categories to break the warm-up.")
+    print(f"Expected: '{new_name}' scales heavily and overshadows '{old_name}' due to recency decay.\n")
+    
+    # Old interactions (e.g., Food 7 days ago)
+    for video_id in videos_by_category.get(old_cat, [])[:5]:
+        save_mock_interaction(create_mock_interaction(video_id=video_id, watch_time_ms=60000, days_ago=7))
+        
+    # New interactions (e.g., Beauty today)
+    for video_id in videos_by_category.get(new_cat, [])[:10]:
+        save_mock_interaction(create_mock_interaction(video_id=video_id, watch_time_ms=60000, days_ago=0))
+        
+    # Diversity to clear the warmup penalty (1, 3, 4)
+    for cat in other_cats:
+        for video_id in videos_by_category.get(cat, [])[:1]:
+            save_mock_interaction(create_mock_interaction(video_id=video_id, watch_time_ms=60000, days_ago=0))
+            
+    recs = product_recommendation(n_recommended=50)
+    categories = [int(rec["bucket_num"]) for rec in recs if rec.get("bucket_num") is not None]
+    
+    plot_histogram(categories, f"Product Test: Recency Bias ({new_name} Today vs {old_name} 7d ago)")
+    
+    new_count = sum(1 for c in categories if c == new_cat)
+    old_count = sum(1 for c in categories if c == old_cat)
+    print(f"\n📊 Results:\n   '{new_name}' (today): {new_count}/50\n   '{old_name}' (7d old): {old_count}/50")
 from backend.src.product_recommendation.personalized_recommendation import (
     product_recommendation,
     _products_recommendation_cache  # Import cache to clear it between tests
@@ -29,6 +60,23 @@ TEST_DIR = project_root / "data" / "test_interactions"
 VIDEO_PARQUET_DIR = project_root / "data" / "video_parquet"
 PRODUCT_PARQUET_DIR = project_root / "data" / "product_parquet"
 CACHE_FILE = project_root / ".product_test_cache.pkl"
+
+# Category Name Mapping
+CATEGORY_NAMES = {
+    1: "Fashion",
+    2: "Beauty",
+    3: "Electronics",
+    4: "Home",
+    5: "Fitness",
+    6: "Food",
+    7: "Baby",
+    8: "Hobby",
+    9: "Pets",
+    10: "Gaming",
+    11: "Outdoor",
+    12: "Automotives",
+    13: "Other"
+}
 
 
 def test_actual_user_history_products(original_download_func):
@@ -75,26 +123,29 @@ def plot_database_distribution(items_by_category, title, total_categories=13):
         print(f"❌ No data to plot for {title}")
         return
     
-    # Determine the range of categories to plot (1 to 13, or higher if data exists)
+    # Determine the range of categories to plot
     max_cat_in_data = max(items_by_category.keys()) if items_by_category else 0
     max_cat = max(total_categories, max_cat_in_data)
     all_cats = list(range(1, max_cat + 1))
     
     # Count the total items available in each category
     counts = [len(items_by_category.get(cat, [])) for cat in all_cats]
-    labels = [f"Cat {cat}" for cat in all_cats]
+    labels = [CATEGORY_NAMES.get(cat, f"Cat {cat}") for cat in all_cats]
     total_items = sum(counts)
     
     plt.figure(figsize=(14, 6))
-    # Using a slightly different color map to distinguish from recommendation plots
-    colors = plt.cm.Set3(np.linspace(0, 1, len(all_cats)))
+    
+    # NEW DISTINCT COLORS: Using tab20 for clear separation
+    colors = plt.cm.tab20.colors[:len(all_cats)]
+    
     bars = plt.bar(labels, counts, color=colors, edgecolor='black', linewidth=1.5)
     
     plt.title(title + f" (Total: {total_items})", fontsize=14, fontweight='bold')
     plt.xlabel('Category', fontsize=12, fontweight='bold')
     plt.ylabel('Total Items Available', fontsize=12, fontweight='bold')
     
-    # Add 15% padding to the top so labels don't get cut off
+    plt.xticks(rotation=45, ha='right', fontweight='bold')
+    
     max_count = max(counts) if counts else 0
     plt.ylim(0, max_count * 1.15)
     
@@ -111,58 +162,41 @@ def plot_database_distribution(items_by_category, title, total_categories=13):
     filename = title.replace(": ", "_").replace(" ", "_").lower() + ".png"
     plt.savefig(filename, dpi=150, bbox_inches='tight')
     print(f"✅ Saved: {filename}")
-    plt.show()
+    plt.close()
+
 def load_catalog_by_category(parquet_dir, id_col) -> dict:
-    """
-    Load items from a parquet directory and group by category (bucket_num).
-    """
     if not os.path.exists(parquet_dir):
         print(f"❌ Error: {parquet_dir} not found")
         return {}
     
     items_by_category = {}
-    
     for filename in os.listdir(parquet_dir):
         if not filename.endswith(".parquet"):
             continue
-        
         filepath = os.path.join(parquet_dir, filename)
         try:
             df = pd.read_parquet(filepath)
-            
             for _, row in df.iterrows():
                 item_id = row.get(id_col)
                 bucket_num = row.get("bucket_num")
-                
                 if pd.notna(item_id) and pd.notna(bucket_num):
-                    if isinstance(bucket_num, (list, np.ndarray)):
-                        categories = bucket_num
-                    else:
-                        categories = [bucket_num]
-                    
+                    categories = bucket_num if isinstance(bucket_num, (list, np.ndarray)) else [bucket_num]
                     for cat in categories:
                         cat_id = int(cat) if not isinstance(cat, int) else cat
                         if cat_id not in items_by_category:
                             items_by_category[cat_id] = []
                         items_by_category[cat_id].append(item_id)
-        
-        except Exception as e:
+        except Exception:
             pass
-            
     return items_by_category
 
-
 def setup_test_environment():
-    """Create fresh test directory and clear product cache"""
     if os.path.exists(TEST_DIR):
         shutil.rmtree(TEST_DIR)
     os.makedirs(TEST_DIR, exist_ok=True)
-    
-    # Force clear the product recommendation cache
     _products_recommendation_cache["data"] = None
     _products_recommendation_cache["timestamp"] = 0
     print(f"✅ Created fresh test directory and cleared product cache.\n")
-
 
 def create_mock_interaction(
     video_id: str,
@@ -180,7 +214,6 @@ def create_mock_interaction(
         "interaction_timestamp": timestamp.isoformat(),
     }
 
-
 def save_mock_interaction(interaction: dict):
     df = pd.DataFrame([interaction])
     os.makedirs(TEST_DIR, exist_ok=True)
@@ -188,22 +221,17 @@ def save_mock_interaction(interaction: dict):
     out_path = os.path.join(TEST_DIR, f"part-{file_key}.parquet")
     df.to_parquet(out_path, engine="pyarrow", index=False)
 
-
 def monkey_patch_download_interactions():
-    """Monkey-patch the download function to use test directory."""
     from backend.src.database import db_utils
     import backend.src.product_recommendation.personalized_recommendation as rec_module
     
     original_download = db_utils.download_user_interactions
-    
     def test_download():
         if not os.path.exists(TEST_DIR):
             return pd.DataFrame()
-        
         parquet_files = list(Path(TEST_DIR).glob("*.parquet"))
         if not parquet_files:
             return pd.DataFrame()
-        
         dfs = [pd.read_parquet(f) for f in parquet_files]
         return pd.concat(dfs, ignore_index=True)
     
@@ -211,25 +239,23 @@ def monkey_patch_download_interactions():
     rec_module.download_user_interactions = test_download
     return original_download
 
-
 def plot_histogram(categories, title, total_categories=13):
-    """Plot category histogram for products"""
     if not categories:
         print("❌ No products recommended to plot")
         return
     
-    # Force the x-axis to include categories 1 through 13 (or higher if present)
     max_cat_in_data = max(categories) if categories else 0
     max_cat = max(total_categories, max_cat_in_data)
     all_cats = list(range(1, max_cat + 1))
     
-    # Count occurrences, defaulting to 0 for missing categories
     counts = [categories.count(cat) for cat in all_cats]
-    labels = [f"Cat {cat}" for cat in all_cats]  # Shortened label to fit 13 bars nicely
+    labels = [CATEGORY_NAMES.get(cat, f"Cat {cat}") for cat in all_cats]
     
-    # Made the figure slightly wider to accommodate all 13+ bars
     plt.figure(figsize=(14, 6))
-    colors = plt.cm.Pastel1(np.linspace(0, 1, len(all_cats)))
+    
+    # NEW DISTINCT COLORS
+    colors = plt.cm.tab20.colors[:len(all_cats)]
+    
     bars = plt.bar(labels, counts, color=colors, edgecolor='black', linewidth=1.5)
     
     plt.title(title, fontsize=14, fontweight='bold')
@@ -237,9 +263,10 @@ def plot_histogram(categories, title, total_categories=13):
     plt.ylabel('Number of Products Recommended', fontsize=12, fontweight='bold')
     plt.ylim(0, max(counts) + 5)
     
+    plt.xticks(rotation=45, ha='right', fontweight='bold')
+    
     for bar, count in zip(bars, counts):
         height = bar.get_height()
-        # Only print the text if the count is greater than 0 to keep the chart clean
         if count > 0:
             plt.text(bar.get_x() + bar.get_width()/2., height,
                     f'{int(count)}\n({count/len(categories)*100:.1f}%)',
@@ -251,116 +278,56 @@ def plot_histogram(categories, title, total_categories=13):
     filename = title.replace(": ", "_").replace(" ", "_").lower() + ".png"
     plt.savefig(filename, dpi=150, bbox_inches='tight')
     print(f"✅ Saved: {filename}")
-    plt.show()
+    plt.close()
 
-
-def test_one_category(videos_by_category: dict, category: int = 5):
+def test_one_category(videos_by_category: dict, category: int):
+    cat_name = CATEGORY_NAMES.get(category, f"Category {category}")
     print("\n" + "="*70)
-    print(f"TEST 1: Category-Only User (Category {category})")
+    print(f"TEST: Category-Only User ({cat_name})")
     print("="*70)
-    print(f"Scenario: User watches 5 videos from category {category} only")
-    print(f"Expected: ~80% of products from category {category} (due to 80/20 preferred/explore split)\n")
+    print(f"Scenario: User watches 5 videos from the '{cat_name}' category only.")
+    print(f"Expected: Warm-up restricts exploitation. '{cat_name}' products will be capped at ~20-30%.\n")
     
     if category not in videos_by_category:
-        print(f"❌ Category {category} not found in video database")
+        print(f"❌ Category '{cat_name}' not found in video database")
         return
     
     video_ids = videos_by_category[category][:5]
-    
     for video_id in video_ids:
-        interaction = create_mock_interaction(video_id=video_id, watch_time_ms=60000, days_ago=0)
-        save_mock_interaction(interaction)
+        save_mock_interaction(create_mock_interaction(video_id=video_id, watch_time_ms=60000, days_ago=0))
     
     recs = product_recommendation(n_recommended=50)
     categories = [int(rec["bucket_num"]) for rec in recs if rec.get("bucket_num") is not None]
     
-    plot_histogram(categories, f"Product Test 1: Category {category}-Only User")
+    plot_histogram(categories, f"Product Test: Cold Start ({cat_name}-Only User)")
     
     target_count = sum(1 for c in categories if c == category)
-    print(f"\n📊 Results: {target_count}/50 recommended products from category {category}")
+    print(f"\n📊 Results: {target_count}/50 recommended products from '{cat_name}'")
 
-
-def test_two_categories_old_and_recent(videos_by_category: dict, old_cat: int = 2, new_cat: int = 5):
+def test_warmup_scaling(videos_by_category: dict, main_cat: int = 6, other_cats: list = [2, 3, 4]):
+    main_name = CATEGORY_NAMES.get(main_cat, f"Category {main_cat}")
     print("\n" + "="*70)
-    print(f"TEST 2: Recency Weighting")
+    print(f"TEST: Post-Warmup Scaling ({main_name} + Diversity)")
     print("="*70)
-    print(f"Scenario: 5 videos from cat {old_cat} watched 30 days ago, 5 from cat {new_cat} watched TODAY")
-    print(f"Expected: Product Category {new_cat} >> Product Category {old_cat}\n")
+    print(f"Scenario: User watches 15 '{main_name}' videos AND 1 video from 3 other categories.")
+    print(f"Expected: The warm-up penalty is lifted (>4 categories). '{main_name}' scales to >80%.\n")
     
-    for video_id in videos_by_category.get(old_cat, [])[:5]:
-        save_mock_interaction(create_mock_interaction(video_id, watch_time_ms=60000, days_ago=30))
+    # 15 videos from the main category (e.g. Food)
+    for video_id in videos_by_category.get(main_cat, [])[:15]:
+        save_mock_interaction(create_mock_interaction(video_id=video_id, watch_time_ms=60000, days_ago=0))
         
-    for video_id in videos_by_category.get(new_cat, [])[:5]:
-        save_mock_interaction(create_mock_interaction(video_id, watch_time_ms=60000, days_ago=0))
-    
+    # 1 video each from the 3 other categories
+    for cat in other_cats:
+        for video_id in videos_by_category.get(cat, [])[:1]:
+            save_mock_interaction(create_mock_interaction(video_id=video_id, watch_time_ms=60000, days_ago=0))
+            
     recs = product_recommendation(n_recommended=50)
     categories = [int(rec["bucket_num"]) for rec in recs if rec.get("bucket_num") is not None]
     
-    plot_histogram(categories, f"Product Test 2: Recency (Cat {old_cat}=30d, Cat {new_cat}=Today)")
+    plot_histogram(categories, f"Product Test: Post-Warmup ({main_name} Focused)")
     
-    old_count = sum(1 for c in categories if c == old_cat)
-    new_count = sum(1 for c in categories if c == new_cat)
-    print(f"\n📊 Results:\n   Category {old_cat} (30d old): {old_count}/50\n   Category {new_cat} (today): {new_count}/50")
-
-
-def test_scenario_3_engagement_levels(videos_by_category: dict, fullyWatched: int = 6, skippedQuickly: int = 4):
-    print("\n" + "="*70)
-    print(f"TEST 3: Engagement Levels")
-    print("="*70)
-    print(f"Scenario: 5 fully watched videos (Cat {fullyWatched}) vs 5 quickly skipped (Cat {skippedQuickly})")
-    print(f"Expected: Product Category {fullyWatched} >> Product Category {skippedQuickly}\n")
-    
-    for video_id in videos_by_category.get(fullyWatched, [])[:5]:
-        save_mock_interaction(create_mock_interaction(video_id, watch_time_ms=60000, watched_50_pct=True, skipped_quickly=False))
-        
-    for video_id in videos_by_category.get(skippedQuickly, [])[:5]:
-        save_mock_interaction(create_mock_interaction(video_id, watch_time_ms=5000, watched_50_pct=False, skipped_quickly=True))
-    
-    recs = product_recommendation(n_recommended=50)
-    categories = [int(rec["bucket_num"]) for rec in recs if rec.get("bucket_num") is not None]
-    
-    plot_histogram(categories, f"Product Test 3: Engagement (Cat {fullyWatched}=watched, Cat {skippedQuickly}=skipped)")
-    
-    watched_count = sum(1 for c in categories if c == fullyWatched)
-    skipped_count = sum(1 for c in categories if c == skippedQuickly)
-    print(f"\n📊 Results:\n   Category {fullyWatched} (watched): {watched_count}/50\n   Category {skippedQuickly} (skipped): {skipped_count}/50")
-
-
-def test_scenario_4_balanced_watch(videos_by_category: dict):
-    print("\n" + "="*70)
-    print(f"TEST 4: Balanced Category Distribution")
-    print("="*70)
-    
-    selected_cats = sorted(list(videos_by_category.keys()))[5:12]
-    print(f"Scenario: User watches 5 videos evenly across categories: {selected_cats}")
-    
-    for cat in selected_cats:
-        for video_id in videos_by_category.get(cat, [])[:5]:
-            save_mock_interaction(create_mock_interaction(video_id, watch_time_ms=50000))
-    
-    recs = product_recommendation(n_recommended=50)
-    categories = [int(rec["bucket_num"]) for rec in recs if rec.get("bucket_num") is not None]
-    
-    plot_histogram(categories, f"Product Test 4: Balanced Distribution ({selected_cats})")
-
-
-def test_scenario_5_other_category_distribution(videos_by_category: dict):
-    print("\n" + "="*70)
-    print(f"TEST 5: 'Other' Category Distribution")
-    print("="*70)
-    
-    other_cat = 13 if 13 in videos_by_category else max(videos_by_category.keys())
-    print(f"Scenario: User watches 5 'other' (bucket_num={other_cat}) videos")
-    print("Expected: Weight distributed equally across all other product categories\n")
-    
-    for video_id in videos_by_category.get(other_cat, [])[:5]:
-        save_mock_interaction(create_mock_interaction(video_id, watch_time_ms=50000))
-    
-    recs = product_recommendation(n_recommended=50)
-    categories = [int(rec["bucket_num"]) for rec in recs if rec.get("bucket_num") is not None]
-    
-    plot_histogram(categories, f"Product Test 5: 'Other' Category Distribution")
-
+    target_count = sum(1 for c in categories if c == main_cat)
+    print(f"\n📊 Results: {target_count}/50 recommended products from '{main_name}'")
 
 def run_all_tests():
     print("\n" + "╔" + "═"*68 + "╗")
@@ -380,28 +347,22 @@ def run_all_tests():
     original_download_function = monkey_patch_download_interactions()
     
     try:
-        
+        # Actual history test
         test_actual_user_history_products(original_download_function)
 
-
+        # ---------------------------------------------------------
+        # COLD START (Only Food)
         setup_test_environment()
-        test_one_category(videos_by_category, category=5)
+        test_one_category(videos_by_category, category=6)
         
-        
+        # POST WARM-UP (Food + Beauty, Electronics, Home)
         setup_test_environment()
-        test_two_categories_old_and_recent(videos_by_category, old_cat=5, new_cat=2)
+        test_warmup_scaling(videos_by_category, main_cat=6, other_cats=[2, 3, 4])
+        # ---------------------------------------------------------
         
-        
+        # RECENCY BIAS (Beauty Today vs Food 7 Days Ago)
         setup_test_environment()
-        test_scenario_3_engagement_levels(videos_by_category)
-        
-        
-        setup_test_environment()
-        test_scenario_4_balanced_watch(videos_by_category)
-        
-        
-        setup_test_environment()
-        test_scenario_5_other_category_distribution(videos_by_category)
+        test_recency_post_warmup(videos_by_category, old_cat=6, new_cat=2, other_cats=[1, 3, 4])
         
         print("\n" + "="*70)
         print("✅ ALL TESTS COMPLETED")
