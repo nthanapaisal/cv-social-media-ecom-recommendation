@@ -16,3 +16,5 @@ ALGORITHMIC_INSIGHTS.md
 *.png
 RECENCY_WEIGHTING_GUIDE.md
 *.pkl
+parquet_viewer.py
+extract_custom_category.py
