@@ -10,6 +10,8 @@ VisCart is a full stack application that demonstrates an end-to-end multi-modal 
 
 We use computer vision to integrate short-form video content with personalized product recommendations through a number of modalities including visual features, textual signal, and semantic descriptions.
 
+## Please Refer To Viscart.pdf for more details
+
 ## How to Run
 
 ### Required Data
@@ -133,3 +135,5 @@ Overall average: 77.6% agreement with the video classification model based on re
 Misclassifications can be attributed to ambiguous videos that fit multiple or none of the categories, noisy video content leading to model confusion, and object detection that focuses on the incorrect objects.
 
 With only 5 signals we're able to achieve a high level of confidence for our video classification system that we believe matches user expectations.
+
+
