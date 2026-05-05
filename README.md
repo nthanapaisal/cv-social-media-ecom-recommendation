@@ -15,6 +15,15 @@ We use computer vision to integrate short-form video content with personalized p
 ## How to Run
 
 ### Required Data
+Final data links
+
+Sample_data: 20 products, 20 tiktoks
+https://drive.google.com/file/d/1i5IVaPVO0WI28-bTrqtkZ1OYOnush7kT/view?usp=sharing
+
+data: 1000 products, 1000 tiktoks
+https://drive.google.com/file/d/1tj35rxMzVQjffsjqzeu65GilU3414cMl/view?usp=sharing
+
+Place files in the workspace folders mentioned below:
 
 Product data
 - ```cv-social-media-ecom-recommendation/data/products``` - product images
